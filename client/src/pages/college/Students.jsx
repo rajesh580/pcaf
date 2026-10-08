@@ -109,20 +109,20 @@ export default function CollegeStudents() {
   return (
     <div className="space-y-6">
       {/* Light Header Banner Card */}
-      <div className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-xs font-semibold uppercase tracking-wider">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold uppercase tracking-wider">
             <GraduationCap className="w-3.5 h-3.5" /> Enrolled Student Roster
           </div>
-          <h1 className="text-2xl font-bold font-display text-slate-900 dark:text-white">Institutional Student Profiles</h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xl leading-relaxed">
+          <h1 className="text-2xl font-bold font-display text-slate-900">Institutional Student Profiles</h1>
+          <p className="text-xs text-slate-500 max-w-xl leading-relaxed">
             Inspect enrolled student accounts, academic records, verified skill profiles, and recruitment application histories across departments.
           </p>
         </div>
 
-        <div className="px-5 py-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-right shrink-0 shadow-2xs">
+        <div className="px-5 py-3 bg-white rounded-xl border border-slate-200 text-right shrink-0 shadow-2xs">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Enrolled</span>
-          <span className="text-xl font-bold text-blue-600 dark:text-blue-400 font-display">{students.length} Students</span>
+          <span className="text-xl font-bold text-blue-600 font-display">{students.length} Students</span>
         </div>
       </div>
 
@@ -142,15 +142,15 @@ export default function CollegeStudents() {
               if (resumePreviewUrl) URL.revokeObjectURL(resumePreviewUrl);
               setResumePreviewUrl('');
             }}
-            className="inline-flex items-center gap-2 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline"
+            className="inline-flex items-center gap-2 text-xs font-bold text-blue-600 hover:underline"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Enrolled Students Directory</span>
           </button>
 
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 md:p-8 space-y-6">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8 space-y-6">
             {/* Student Profile Header Card */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-100 dark:border-slate-800 pb-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-100 pb-6">
               <div className="flex items-center space-x-4">
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 text-white flex items-center justify-center text-2xl font-bold font-display shadow-md">
                   {selectedStudent.photoUrl ? (
@@ -161,17 +161,17 @@ export default function CollegeStudents() {
                 </div>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white font-display">
+                    <h2 className="text-xl font-bold text-slate-900 font-display">
                       {selectedStudent.name || 'Student Candidate'}
                     </h2>
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono uppercase bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
                       Enrolled
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    {selectedStudent.email} · USN: <strong className="font-mono text-slate-700 dark:text-slate-200">{selectedStudent.studentProfile?.usn || '—'}</strong>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {selectedStudent.email} · USN: <strong className="font-mono text-slate-700">{selectedStudent.studentProfile?.usn || '—'}</strong>
                   </p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                  <p className="text-xs text-slate-400 mt-0.5">
                     {selectedStudent.studentProfile?.college?.name} · {selectedStudent.studentProfile?.department?.name || selectedStudent.studentProfile?.department?.code || 'Department'}
                   </p>
                 </div>
@@ -183,7 +183,7 @@ export default function CollegeStudents() {
                     href={selectedStudent.studentProfile.linkedinUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
                   >
                     <span>LinkedIn Profile</span>
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -194,7 +194,7 @@ export default function CollegeStudents() {
                     href={selectedStudent.studentProfile.githubUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
                   >
                     <span>GitHub Profile</span>
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -205,27 +205,27 @@ export default function CollegeStudents() {
 
             {/* Academic KPIs Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-1">
+              <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Cumulative CGPA</span>
-                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 font-display">
+                <p className="text-2xl font-bold text-blue-600 font-display">
                   {selectedStudent.studentProfile?.cgpa ? selectedStudent.studentProfile.cgpa.toFixed(2) : '—'}
                 </p>
               </div>
-              <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-1">
+              <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Backlog Count</span>
                 <p className={`text-2xl font-bold font-display ${selectedStudent.studentProfile?.backlogs > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
                   {selectedStudent.studentProfile?.backlogs ?? 0}
                 </p>
               </div>
-              <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-1">
+              <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Semester</span>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white font-display">
+                <p className="text-2xl font-bold text-slate-900 font-display">
                   Sem {selectedStudent.studentProfile?.semester || '—'}
                 </p>
               </div>
-              <div className="p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs space-y-1">
+              <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Graduation Batch</span>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white font-display">
+                <p className="text-2xl font-bold text-slate-900 font-display">
                   Class of {selectedStudent.studentProfile?.graduationYear || '—'}
                 </p>
               </div>
@@ -234,8 +234,8 @@ export default function CollegeStudents() {
             {/* Profile Grid: Skills, Certifications & Projects */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Verified Skills */}
-              <div className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
+              <div className="p-5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-3">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-600" /> Verified Technical Skills
                 </h3>
                 {selectedStudent.studentProfile?.skills?.length ? (
@@ -243,7 +243,7 @@ export default function CollegeStudents() {
                     {selectedStudent.studentProfile.skills.map((item, idx) => (
                       <span
                         key={idx}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-800 dark:text-slate-200 shadow-2xs"
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-slate-200 text-xs font-medium text-slate-800 shadow-2xs"
                       >
                         <span className="font-semibold">{item.skill?.name || item.name}</span>
                         <span className="text-[10px] text-slate-400 font-mono">({item.level?.toLowerCase() || 'intermediate'})</span>
@@ -256,13 +256,13 @@ export default function CollegeStudents() {
               </div>
 
               {/* Certifications & Projects */}
-              <div className="p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs space-y-4">
+              <div className="p-5 rounded-xl border border-slate-200 bg-white shadow-2xs space-y-4">
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2 mb-2">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2 mb-2">
                     <Award className="w-4 h-4 text-amber-500" /> Certifications
                   </h3>
                   {selectedStudent.studentProfile?.certifications?.length ? (
-                    <ul className="list-disc list-inside space-y-1 text-xs text-slate-600 dark:text-slate-300">
+                    <ul className="list-disc list-inside space-y-1 text-xs text-slate-600">
                       {selectedStudent.studentProfile.certifications.map((c, idx) => (
                         <li key={idx}>{c.name}</li>
                       ))}
@@ -272,12 +272,12 @@ export default function CollegeStudents() {
                   )}
                 </div>
 
-                <div className="border-t border-slate-200 dark:border-slate-800 pt-3">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2 mb-2">
+                <div className="border-t border-slate-200 pt-3">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2 mb-2">
                     <BookOpen className="w-4 h-4 text-blue-600" /> Academic Projects
                   </h3>
                   {selectedStudent.studentProfile?.projects?.length ? (
-                    <ul className="list-disc list-inside space-y-1 text-xs text-slate-600 dark:text-slate-300">
+                    <ul className="list-disc list-inside space-y-1 text-xs text-slate-600">
                       {selectedStudent.studentProfile.projects.map((p, idx) => (
                         <li key={idx}>{p.title}</li>
                       ))}
@@ -290,15 +290,15 @@ export default function CollegeStudents() {
             </div>
 
             {/* Applications History Table */}
-            <div className="space-y-3 border-t border-slate-100 dark:border-slate-800 pt-6">
-              <h3 className="font-bold text-slate-900 dark:text-white text-base font-display flex items-center gap-2">
+            <div className="space-y-3 border-t border-slate-100 pt-6">
+              <h3 className="font-bold text-slate-900 text-base font-display flex items-center gap-2">
                 <Briefcase className="w-5 h-5 text-blue-600" /> Placement & Internship Application Records
               </h3>
 
               {selectedStudent.studentProfile?.applications?.length ? (
-                <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+                <div className="overflow-x-auto rounded-xl border border-slate-200">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 dark:bg-slate-800 text-slate-500 border-b border-slate-200 dark:border-slate-700 uppercase font-semibold">
+                    <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 uppercase font-semibold">
                       <tr>
                         <th className="py-3 px-4">Opportunity</th>
                         <th className="py-3 px-4">Company</th>
@@ -307,13 +307,13 @@ export default function CollegeStudents() {
                         <th className="py-3 px-4">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    <tbody className="divide-y divide-slate-100">
                       {selectedStudent.studentProfile.applications.map((app, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
-                          <td className="py-3 px-4 font-semibold text-slate-900 dark:text-white">
+                        <tr key={idx} className="hover:bg-slate-50/50">
+                          <td className="py-3 px-4 font-semibold text-slate-900">
                             {app.opportunity?.title || 'Opportunity'}
                           </td>
-                          <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
+                          <td className="py-3 px-4 text-slate-600">
                             {app.opportunity?.company?.name || 'Company'}
                           </td>
                           <td className="py-3 px-4 text-slate-500 font-mono">
@@ -323,7 +323,7 @@ export default function CollegeStudents() {
                             {app.matchScore != null ? `${app.matchScore}%` : '—'}
                           </td>
                           <td className="py-3 px-4 font-semibold">
-                            <span className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                            <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
                               {(app.status || 'APPLIED').replaceAll('_', ' ')}
                             </span>
                           </td>
@@ -338,21 +338,21 @@ export default function CollegeStudents() {
             </div>
 
             {/* Resume Preview */}
-            <div className="space-y-3 border-t border-slate-100 dark:border-slate-800 pt-6">
-              <h3 className="font-bold text-slate-900 dark:text-white text-base font-display flex items-center gap-2">
+            <div className="space-y-3 border-t border-slate-100 pt-6">
+              <h3 className="font-bold text-slate-900 text-base font-display flex items-center gap-2">
                 <FileText className="w-5 h-5 text-indigo-600" /> Candidate Resume Document
               </h3>
               {loadingResume ? (
                 <p className="text-xs text-slate-400 italic">Loading resume document...</p>
               ) : resumeError ? (
-                <p className="text-xs text-rose-600 bg-rose-50 dark:bg-rose-950/30 p-3 rounded-lg border border-rose-200 dark:border-rose-800">
+                <p className="text-xs text-rose-600 bg-rose-50 p-3 rounded-lg border border-rose-200">
                   {resumeError}
                 </p>
               ) : resumePreviewUrl ? (
                 <iframe
                   title="Candidate Resume Preview"
                   src={resumePreviewUrl}
-                  className="w-full h-[600px] rounded-xl border border-slate-200 dark:border-slate-800 bg-white"
+                  className="w-full h-[600px] rounded-xl border border-slate-200 bg-white"
                 />
               ) : (
                 <p className="text-xs text-slate-400 italic">No resume uploaded by candidate.</p>
@@ -364,7 +364,7 @@ export default function CollegeStudents() {
         /* Enrolled Students Roster Directory */
         <div className="space-y-6">
           {/* Search & Filter Toolbar */}
-          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
@@ -377,7 +377,7 @@ export default function CollegeStudents() {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder="Search candidate..."
-                    className="w-full pl-9 pr-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                    className="w-full pl-9 pr-3 py-2 border border-slate-200 bg-white rounded-xl text-xs text-slate-900 focus:outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
@@ -389,7 +389,7 @@ export default function CollegeStudents() {
                 <select
                   value={deptFilter}
                   onChange={(e) => setDeptFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-slate-200 bg-white rounded-xl text-xs text-slate-900 focus:outline-none focus:border-blue-500"
                 >
                   <option value="">All Departments</option>
                   {uniqueDepartments.map((dept) => (
@@ -412,7 +412,7 @@ export default function CollegeStudents() {
                   value={minCgpa}
                   onChange={(e) => setMinCgpa(e.target.value)}
                   placeholder="e.g. 7.5"
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-slate-200 bg-white rounded-xl text-xs text-slate-900 focus:outline-none focus:border-blue-500"
                 />
               </div>
 
@@ -426,16 +426,16 @@ export default function CollegeStudents() {
                   value={maxBacklogs}
                   onChange={(e) => setMaxBacklogs(e.target.value)}
                   placeholder="e.g. 0"
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-slate-200 bg-white rounded-xl text-xs text-slate-900 focus:outline-none focus:border-blue-500"
                 />
               </div>
             </div>
           </div>
 
           {/* Roster Table */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-              <h3 className="font-bold text-slate-900 dark:text-white font-display text-sm">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+              <h3 className="font-bold text-slate-900 font-display text-sm">
                 Enrolled Candidates ({filteredStudents.length})
               </h3>
               <span className="text-xs text-slate-400">Click any row to inspect complete student profile</span>
@@ -450,7 +450,7 @@ export default function CollegeStudents() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 border-b border-slate-200 dark:border-slate-700 uppercase font-bold text-[10px] tracking-wider">
+                  <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 uppercase font-bold text-[10px] tracking-wider">
                     <tr>
                       <th className="py-3 px-4">Student Name</th>
                       <th className="py-3 px-4">USN</th>
@@ -461,30 +461,30 @@ export default function CollegeStudents() {
                       <th className="py-3 px-4 text-right">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <tbody className="divide-y divide-slate-100">
                     {filteredStudents.map((student) => {
                       const profile = student.studentProfile || {};
                       return (
                         <tr
                           key={student.id}
                           onClick={() => openStudentDetail(student)}
-                          className="hover:bg-blue-50/50 dark:hover:bg-blue-950/30 transition cursor-pointer"
+                          className="hover:bg-blue-50/50 transition cursor-pointer"
                         >
                           <td className="py-3.5 px-4">
-                            <p className="font-bold text-slate-900 dark:text-white">{student.name || 'Candidate'}</p>
+                            <p className="font-bold text-slate-900">{student.name || 'Candidate'}</p>
                             <p className="text-[11px] text-slate-400">{student.email}</p>
                           </td>
-                          <td className="py-3.5 px-4 font-mono font-semibold text-slate-700 dark:text-slate-300">
+                          <td className="py-3.5 px-4 font-mono font-semibold text-slate-700">
                             {profile.usn || '—'}
                           </td>
-                          <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300">
+                          <td className="py-3.5 px-4 text-slate-600">
                             {profile.department?.name || profile.department?.code || '—'}
                           </td>
-                          <td className="py-3.5 px-4 font-bold text-blue-600 dark:text-blue-400 font-display">
+                          <td className="py-3.5 px-4 font-bold text-blue-600 font-display">
                             {profile.cgpa ? profile.cgpa.toFixed(2) : '—'}
                           </td>
                           <td className="py-3.5 px-4">
-                            <span className={`px-2 py-0.5 rounded font-bold ${profile.backlogs > 0 ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300'}`}>
+                            <span className={`px-2 py-0.5 rounded font-bold ${profile.backlogs > 0 ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'}`}>
                               {profile.backlogs ?? 0}
                             </span>
                           </td>
