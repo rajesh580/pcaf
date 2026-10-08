@@ -109,20 +109,20 @@ export default function CollegeStudents() {
   return (
     <div className="space-y-8">
       {/* Header Banner */}
-      <div className="bg-slate-900 text-white p-6 md:p-8 rounded-2xl border border-slate-800 shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-wider">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-xs font-semibold uppercase tracking-wider">
             <GraduationCap className="w-3.5 h-3.5" /> Enrolled Student Roster
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">Institutional Student Profiles</h1>
-          <p className="text-xs text-slate-400 max-w-xl leading-relaxed">
+          <h1 className="text-2xl font-bold font-display text-slate-900 dark:text-white">Institutional Student Profiles</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xl leading-relaxed">
             Inspect enrolled student accounts, academic records, verified skill profiles, and recruitment application histories across departments.
           </p>
         </div>
 
-        <div className="bg-slate-800/80 border border-slate-700/80 px-4 py-3 rounded-xl text-right shrink-0">
+        <div className="px-4 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-right shrink-0">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Total Enrolled</span>
-          <span className="text-xl font-extrabold text-blue-400 font-mono">{students.length} Students</span>
+          <span className="text-xl font-bold text-blue-600 dark:text-blue-400 font-display">{students.length} Students</span>
         </div>
       </div>
 

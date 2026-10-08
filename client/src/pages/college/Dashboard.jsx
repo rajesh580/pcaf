@@ -41,35 +41,31 @@ export default function CollegeDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Executive Header Banner matching Admin Dashboard */}
-      <div className="bg-slate-900 text-white rounded-2xl p-6 sm:p-7 border border-slate-800 shadow-md relative overflow-hidden flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-        <div className="space-y-1.5 z-10">
-          <div className="flex items-center space-x-2">
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-widest uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mr-1.5"></span>
-              Live College Portal
-            </span>
-            <span className="text-xs font-mono text-slate-400">Institutional System</span>
+      {/* Executive Header Banner */}
+      <div className="bg-white dark:bg-slate-900 p-6 md:p-8 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="space-y-1.5">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-xs font-semibold uppercase tracking-wider">
+            <School className="w-3.5 h-3.5" /> Institution Command Center
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+          <h1 className="text-2xl font-bold font-display text-slate-900 dark:text-white">
             {data?.collegeName || 'College Administration & Management'}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 max-w-2xl leading-relaxed">
+          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
             Institutional performance metrics, placement success ratios, branch monitoring, and enrolled student rosters.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 z-10">
+        <div className="flex flex-wrap items-center gap-3">
           <Link
             to="/college/students"
-            className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 transition-all shadow-sm shadow-blue-500/20 space-x-2"
+            className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-500 hover:via-purple-500 hover:to-indigo-600 transition-all shadow-md shadow-purple-600/20 space-x-2"
           >
             <Users className="w-4 h-4" />
             <span>Enrolled Students</span>
           </Link>
           <Link
             to="/college/reports"
-            className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all space-x-2"
+            className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-all space-x-2"
           >
             <BarChart3 className="w-4 h-4" />
             <span>Analytics & Reports</span>
