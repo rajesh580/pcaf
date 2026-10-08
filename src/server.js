@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 const authRoutes = require('./routes/authRoutes');
 const matchingRoutes = require('./routes/matchingRoutes');
@@ -61,8 +62,13 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/dashboards', dashboardRoutes);
 app.use('/api/upload', uploadRoutes);
 
+// Serve uploaded static assets (resumes, documents)
+const uploadsPath = path.join(__dirname, '../uploads');
+// Resume cache files are served only through authenticated preview endpoints.
+app.use('/uploads/resumes', (req, res) => res.status(404).end());
+app.use('/uploads', express.static(uploadsPath));
+
 // Serve React production build if available
-const path = require('path');
 const clientBuildPath = path.join(__dirname, '../client/build');
 app.use(express.static(clientBuildPath));
 

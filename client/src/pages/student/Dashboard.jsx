@@ -48,7 +48,7 @@ export default function StudentDashboard() {
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
           <div className="text-xs font-medium text-slate-500 uppercase">Interviews Scheduled</div>
-          <div className="text-2xl font-bold text-indigo-600 mt-1">{m.interviews ?? 0}</div>
+          <div className="text-2xl font-bold text-blue-600 mt-1">{m.interviews ?? 0}</div>
         </div>
       </div>
 
@@ -95,6 +95,12 @@ export default function StudentDashboard() {
           </Link>
           <Link to="/student/skill-match" className="p-3 bg-slate-50 hover:bg-slate-100 rounded-lg text-center text-xs font-medium text-slate-700 border border-slate-200/80 transition">
             Skill Gap Analysis
+          </Link>
+          <Link to="/student/report" className="p-3 bg-slate-50 hover:bg-slate-100 rounded-lg text-center text-xs font-medium text-slate-700 border border-slate-200/80 transition">
+            Career Report
+          </Link>
+          <Link to="/student/training" className="p-3 bg-slate-50 hover:bg-slate-100 rounded-lg text-center text-xs font-medium text-slate-700 border border-slate-200/80 transition">
+            Training Programs
           </Link>
         </div>
       </div>

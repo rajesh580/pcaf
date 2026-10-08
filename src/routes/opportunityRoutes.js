@@ -1,110 +1,53 @@
 const express = require('express');
-const { authenticate, authorize } = require('../middleware/auth');
+const { authenticate, authorize, checkPermission } = require('../middleware/auth');
+const prisma = require('../prisma');
 const { evaluateSkillMatch } = require('../services/skillMatchingEngine');
+const { createOpportunity, mapOpportunity, applyStudentToOpportunity } = require('../services/opportunityRepository');
 
 const router = express.Router();
+const requirement = { company: true, requiredSkills: { include: { skill: true } } };
 
-let opportunities = [];
+router.post('/', authenticate, checkPermission('OPPORTUNITY_CREATE'), async (req, res) => {
+  const type = req.body.type === 'JOB' ? 'JOB' : req.body.type === 'INTERNSHIP' ? 'INTERNSHIP' : null;
+  if (!type) return res.status(400).json({ error: 'type must be INTERNSHIP or JOB.' });
+  try {
+    const opportunity = await createOpportunity({ user: req.user, type, data: req.body });
+    res.status(201).json({ message: 'Opportunity published successfully.', opportunity });
+  } catch (error) { res.status(400).json({ error: error.message }); }
+});
 
-let applications = [];
+router.get('/', authenticate, async (req, res) => {
+  try {
+    const records = await prisma.opportunity.findMany({ where: { status: 'ACTIVE', deadline: { gte: new Date() } }, include: requirement, orderBy: { createdAt: 'desc' } });
+    const opportunities = records.map(mapOpportunity);
+    res.json({ total: opportunities.length, opportunities });
+  } catch (error) { res.status(500).json({ error: 'Could not load opportunities.' }); }
+});
 
-/**
- * Publish Internship/Job Opportunity (Section 10 & 12)
- * Company Admin & Recruiters
- */
-router.post('/', authenticate, authorize('COMPANY_ADMIN', 'COMPANY_RECRUITER'), (req, res) => {
-  const {
-    title,
-    type = 'INTERNSHIP',
-    workMode = 'HYBRID',
-    minCgpa = 6.0,
-    maxBacklogs = 0,
-    graduationYear,
-    eligibleDeptCodes = [],
-    requiredSkills = [],
-    stipend,
-    salary,
-    duration,
-    deadline
-  } = req.body;
-
-  if (!title || !graduationYear || !requiredSkills.length) {
-    return res.status(400).json({ error: 'Title, graduationYear, and requiredSkills are mandatory' });
+router.post('/recommended', authenticate, authorize('STUDENT'), async (req, res) => {
+  try {
+    const student = await prisma.student.findUnique({ where: { userId: req.user.id }, include: { department: true, skills: { include: { skill: true } }, certifications: true, projects: true } });
+    if (!student) return res.status(404).json({ error: 'Student profile not found.' });
+    const candidate = { ...student, skills: student.skills.map(({ skill, level }) => ({ name: skill.name, level })) };
+    const records = await prisma.opportunity.findMany({ where: { status: 'ACTIVE', deadline: { gte: new Date() } }, include: requirement, orderBy: { createdAt: 'desc' } });
+    const recommendations = records.map((record) => ({ opportunity: mapOpportunity(record), ...evaluateSkillMatch(candidate, record) })).sort((a, b) => b.matchScore - a.matchScore);
+    res.json({ recommendations });
+  } catch (error) {
+    console.error('Opportunity recommendations failed:', error);
+    res.status(500).json({ error: 'Could not generate opportunity recommendations.' });
   }
-
-  const newOpp = {
-    id: `opp_${Date.now()}`,
-    companyName: req.user.companyName || 'Registered Partner Company',
-    title,
-    type,
-    workMode,
-    minCgpa: parseFloat(minCgpa),
-    maxBacklogs: parseInt(maxBacklogs, 10),
-    graduationYear: parseInt(graduationYear, 10),
-    eligibleDeptCodes,
-    requiredSkills,
-    stipend,
-    salary,
-    duration,
-    deadline: deadline || new Date(Date.now() + 30 * 86400000).toISOString()
-  };
-
-  opportunities.push(newOpp);
-  res.status(201).json({ message: 'Opportunity published successfully', opportunity: newOpp });
 });
 
-/**
- * Get all available opportunities
- */
-router.get('/', authenticate, (req, res) => {
-  res.json({ opportunities });
-});
-
-/**
- * Get Personalized Recommendations for Student (Section 10, 15, 21)
- * Evaluates all opportunities against student profile and ranks by match score
- */
-router.post('/recommended', authenticate, authorize('STUDENT'), (req, res) => {
-  const { student } = req.body;
-  if (!student) return res.status(400).json({ error: 'Student profile payload required' });
-
-  const evaluated = opportunities.map((opp) => {
-    const evaluation = evaluateSkillMatch(student, opp);
-    return {
-      opportunity: opp,
-      ...evaluation
-    };
-  });
-
-  // Sort by highest match score
-  evaluated.sort((a, b) => b.matchScore - a.matchScore);
-
-  res.json({ recommendations: evaluated });
-});
-
-/**
- * Student Applies to an Opportunity (Section 11)
- */
-router.post('/:id/apply', authenticate, authorize('STUDENT'), (req, res) => {
-  const { student } = req.body;
-  const opp = opportunities.find((o) => o.id === req.params.id);
-
-  if (!opp) return res.status(404).json({ error: 'Opportunity not found' });
-
-  const evalResult = student ? evaluateSkillMatch(student, opp) : { matchScore: 75, isEligible: true };
-
-  const application = {
-    id: `app_${Date.now()}`,
-    opportunityId: opp.id,
-    studentId: req.user.id || 'std_1',
-    status: 'APPLIED',
-    matchScore: evalResult.matchScore,
-    isEligible: evalResult.isEligible,
-    appliedAt: new Date().toISOString()
-  };
-
-  applications.push(application);
-  res.status(201).json({ message: 'Applied successfully', application });
+router.post('/:id/apply', authenticate, authorize('STUDENT'), async (req, res) => {
+  try {
+    const record = await prisma.opportunity.findUnique({ where: { id: req.params.id }, select: { type: true } });
+    if (!record) return res.status(404).json({ error: 'Opportunity not found.' });
+    const result = await applyStudentToOpportunity(req.user.id, req.params.id, record.type, req.body.resumeType);
+    res.status(201).json({ message: 'Application submitted successfully.', application: result.application });
+  } catch (error) {
+    const status = error.message.includes('already applied') ? 409 : error.message.includes('not found') ? 404 : 400;
+    res.status(status).json({ error: error.message });
+  }
 });
 
 module.exports = router;

@@ -105,7 +105,8 @@ router.get('/profile', authenticate, async (req, res) => {
         skills: student.skills.map(s => ({
           id: s.id,
           name: s.skill?.name || '',
-          level: s.level
+          level: s.level,
+          evidenceUrl: s.evidenceUrl || ''
         }))
       }
     });
@@ -199,12 +200,12 @@ router.post('/certifications', authenticate, async (req, res) => {
 });
 
 /**
- * 5. Add / Update Technical Skills in Neon DB
+ * 5. Add / Update / Delete Technical Skills in Neon DB
  */
 router.post('/skills', authenticate, async (req, res) => {
   try {
-    const { name, level = 'INTERMEDIATE' } = req.body;
-    if (!name) return res.status(400).json({ error: 'Skill name is required' });
+    const { name, level = 'INTERMEDIATE', evidenceUrl } = req.body;
+    if (!name || !name.trim()) return res.status(400).json({ error: 'Skill name is required' });
 
     const student = await prisma.student.findFirst({ where: { userId: req.user.id } });
     if (!student) return res.status(404).json({ error: 'Student not found' });
@@ -220,24 +221,123 @@ router.post('/skills', authenticate, async (req, res) => {
     const validLevel = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'].includes(levelUpper) ? levelUpper : 'INTERMEDIATE';
 
     // Upsert student skill
-    const studentSkill = await prisma.studentSkill.upsert({
+    await prisma.studentSkill.upsert({
       where: {
         studentId_skillId: {
           studentId: student.id,
           skillId: skillRecord.id
         }
       },
-      update: { level: validLevel },
+      update: { level: validLevel, evidenceUrl: evidenceUrl || null },
       create: {
         studentId: student.id,
         skillId: skillRecord.id,
-        level: validLevel
+        level: validLevel,
+        evidenceUrl: evidenceUrl || null
       }
     });
 
-    res.json({ message: `Skill '${name}' saved to database`, skill: studentSkill });
+    const updatedSkills = await prisma.studentSkill.findMany({
+      where: { studentId: student.id },
+      include: { skill: true }
+    });
+
+    res.json({
+      message: `Skill '${name.trim()}' saved to database`,
+      skills: updatedSkills.map(s => ({ id: s.id, name: s.skill?.name || '', level: s.level, evidenceUrl: s.evidenceUrl || '' }))
+    });
   } catch (error) {
     res.status(500).json({ error: 'Failed to save skill: ' + error.message });
+  }
+});
+
+router.put('/skills/:id', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, level, evidenceUrl } = req.body;
+
+    const student = await prisma.student.findFirst({ where: { userId: req.user.id } });
+    if (!student) return res.status(404).json({ error: 'Student not found' });
+
+    const existingSkill = await prisma.studentSkill.findFirst({
+      where: {
+        studentId: student.id,
+        OR: [
+          { id: id },
+          { skillId: id },
+          { skill: { name: { equals: id, mode: 'insensitive' } } }
+        ]
+      }
+    });
+    if (!existingSkill) return res.status(404).json({ error: 'Skill record not found' });
+
+    let skillId = existingSkill.skillId;
+    if (name && name.trim()) {
+      const newSkillRecord = await prisma.skill.upsert({
+        where: { name: name.trim() },
+        update: {},
+        create: { name: name.trim(), category: 'Technical' }
+      });
+      skillId = newSkillRecord.id;
+    }
+
+    const levelUpper = (level || existingSkill.level).toUpperCase();
+    const validLevel = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'].includes(levelUpper) ? levelUpper : existingSkill.level;
+
+    await prisma.studentSkill.update({
+      where: { id: existingSkill.id },
+      data: {
+        skillId,
+        level: validLevel,
+        evidenceUrl: evidenceUrl !== undefined ? (evidenceUrl || null) : existingSkill.evidenceUrl
+      }
+    });
+
+    const updatedSkills = await prisma.studentSkill.findMany({
+      where: { studentId: student.id },
+      include: { skill: true }
+    });
+
+    res.json({
+      message: 'Skill updated successfully',
+      skills: updatedSkills.map(s => ({ id: s.id, name: s.skill?.name || '', level: s.level, evidenceUrl: s.evidenceUrl || '' }))
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update skill: ' + error.message });
+  }
+});
+
+router.delete('/skills/:id', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const student = await prisma.student.findFirst({ where: { userId: req.user.id } });
+    if (!student) return res.status(404).json({ error: 'Student not found' });
+
+    const existingSkill = await prisma.studentSkill.findFirst({
+      where: {
+        studentId: student.id,
+        OR: [
+          { id: id },
+          { skillId: id },
+          { skill: { name: { equals: id, mode: 'insensitive' } } }
+        ]
+      }
+    });
+    if (!existingSkill) return res.status(404).json({ error: 'Skill record not found' });
+
+    await prisma.studentSkill.delete({ where: { id: existingSkill.id } });
+
+    const updatedSkills = await prisma.studentSkill.findMany({
+      where: { studentId: student.id },
+      include: { skill: true }
+    });
+
+    res.json({
+      message: 'Skill removed successfully',
+      skills: updatedSkills.map(s => ({ id: s.id, name: s.skill?.name || '', level: s.level, evidenceUrl: s.evidenceUrl || '' }))
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete skill: ' + error.message });
   }
 });
 

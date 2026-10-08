@@ -1,30 +1,72 @@
 const express = require('express');
 const { authenticate, authorize } = require('../middleware/auth');
-const { evaluateSkillMatch } = require('../services/skillMatchingEngine');
+const prisma = require('../prisma');
 
 const router = express.Router();
-
-let enrolledStudents = [];
 
 /**
  * Search and Filter Students (Section 24)
  * Filter by minimum CGPA, skills, department, graduation year
  */
-router.get('/students/search', authenticate, authorize('COMPANY_ADMIN', 'COMPANY_RECRUITER', 'COLLEGE_ADMIN', 'SUPER_ADMIN'), (req, res) => {
-  const { minCgpa, department, skill, graduationYear } = req.query;
+router.get('/students/search', authenticate, authorize('COMPANY_ADMIN', 'COMPANY_RECRUITER', 'COLLEGE_ADMIN', 'SUPER_ADMIN'), async (req, res) => {
+  try {
+    const { minCgpa, department, skill, graduationYear, search } = req.query;
+    const parsedCgpa = minCgpa ? Number(minCgpa) : null;
+    const parsedGraduationYear = graduationYear ? Number(graduationYear) : null;
+    if (parsedCgpa !== null && (!Number.isFinite(parsedCgpa) || parsedCgpa < 0 || parsedCgpa > 10)) {
+      return res.status(400).json({ error: 'Minimum CGPA must be between 0 and 10.' });
+    }
+    if (parsedGraduationYear !== null && (!Number.isInteger(parsedGraduationYear) || parsedGraduationYear < 2000 || parsedGraduationYear > 2100)) {
+      return res.status(400).json({ error: 'Enter a valid graduation year.' });
+    }
 
-  let results = [...enrolledStudents];
+    const where = {
+      ...(parsedCgpa !== null && { cgpa: { gte: parsedCgpa } }),
+      ...(parsedGraduationYear !== null && { graduationYear: parsedGraduationYear }),
+      ...(department && { department: { OR: [
+        { name: { contains: String(department), mode: 'insensitive' } },
+        { code: { contains: String(department), mode: 'insensitive' } },
+      ] } }),
+      ...(skill && { skills: { some: { skill: { name: { contains: String(skill), mode: 'insensitive' } } } } }),
+      ...(search && { OR: [
+        { name: { contains: String(search), mode: 'insensitive' } },
+        { department: { name: { contains: String(search), mode: 'insensitive' } } },
+        { college: { name: { contains: String(search), mode: 'insensitive' } } },
+        { skills: { some: { skill: { name: { contains: String(search), mode: 'insensitive' } } } } },
+      ] }),
+    };
 
-  if (minCgpa) results = results.filter((s) => s.cgpa >= parseFloat(minCgpa));
-  if (department) results = results.filter((s) => s.department.toLowerCase() === department.toLowerCase());
-  if (graduationYear) results = results.filter((s) => s.graduationYear === parseInt(graduationYear, 10));
-  if (skill) {
-    results = results.filter((s) =>
-      s.skills.some((sk) => sk.toLowerCase().includes(skill.toLowerCase()))
-    );
+    const records = await prisma.student.findMany({
+      where,
+      include: {
+        college: { select: { name: true, code: true } },
+        department: { select: { name: true, code: true } },
+        skills: { include: { skill: { select: { name: true } } } },
+      },
+      orderBy: [{ cgpa: 'desc' }, { name: 'asc' }],
+      take: 100,
+    });
+
+    res.json({
+      total: records.length,
+      students: records.map((student) => ({
+        id: student.id,
+        name: student.name,
+        college: student.college?.name || 'College not listed',
+        collegeCode: student.college?.code || '',
+        department: student.department?.name || 'Department not listed',
+        departmentCode: student.department?.code || '',
+        cgpa: student.cgpa,
+        graduationYear: student.graduationYear,
+        skills: student.skills.map(({ skill: studentSkill, level }) => ({ name: studentSkill.name, level })),
+        githubUrl: student.githubUrl,
+        linkedinUrl: student.linkedinUrl,
+      })),
+    });
+  } catch (error) {
+    console.error('Candidate search failed:', error);
+    res.status(500).json({ error: 'Could not search student profiles.' });
   }
-
-  res.json({ total: results.length, students: results });
 });
 
 /**

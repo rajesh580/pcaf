@@ -1,95 +1,79 @@
 const express = require('express');
 const { authenticate, checkPermission } = require('../middleware/auth');
 const prisma = require('../prisma');
-
-const internshipApplicationRoutes = require('./internshipApplicationRoutes');
+const { evaluateSkillMatch } = require('../services/skillMatchingEngine');
+const { ENHANCEMENT_PROGRAMS_CATALOG } = require('../config/enhancementCatalog');
 
 const router = express.Router();
+const percent = (n, d) => d ? `${Math.round((n / d) * 100)}%` : '0%';
 
-/**
- * Section 20: College Dashboard
- * Real-time Institutional KPIs from live database
- */
 router.get('/college', authenticate, checkPermission('REPORT_VIEW_COLLEGE'), async (req, res) => {
   try {
-    const [totalStudents, registeredStudents, totalDepts] = await Promise.all([
-      prisma.student.count(),
-      prisma.user.count({ where: { role: 'STUDENT' } }),
-      prisma.department.count()
+    let collegeId = req.user.collegeId;
+    if (!collegeId) collegeId = (await prisma.college.findFirst({ where: { adminUserId: req.user.id }, select: { id: true } }))?.id;
+    if (!collegeId && ['SUPER_ADMIN', 'PLATFORM_ADMIN'].includes(req.user.role)) collegeId = (await prisma.college.findFirst({ select: { id: true } }))?.id;
+    if (!collegeId) return res.status(404).json({ error: 'No college is associated with this account.' });
+    const college = await prisma.college.findUnique({ where: { id: collegeId }, include: { departments: { include: { students: { include: { applications: true } } } } } });
+    if (!college) return res.status(404).json({ error: 'College not found.' });
+    const students = college.departments.flatMap((department) => department.students);
+    const ids = students.map((student) => student.id);
+    const selected = students.filter((student) => student.applications.some((application) => ['SELECTED', 'JOINED', 'COMPLETED', 'INTERNSHIP_COMPLETED'].includes(application.status)));
+    const [internships, jobs] = await Promise.all([
+      prisma.opportunity.count({ where: { type: 'INTERNSHIP' } }), prisma.opportunity.count({ where: { type: 'JOB' } })
     ]);
-
     res.json({
-      collegeName: 'Academia Institutional Dashboard',
+      collegeName: college.name,
       collegeKpis: {
-        totalStudents,
-        registeredStudents,
-        activeInternships: 0,
-        jobOpportunities: 0,
-        studentsPlaced: 0,
-        studentsInternships: 0,
-        placementPercentage: totalStudents > 0 ? '0%' : '0%',
-        averagePackage: '—',
-        highestPackage: '—'
+        totalStudents: students.length,
+        registeredStudents: await prisma.user.count({ where: { role: 'STUDENT', studentProfile: { collegeId } } }),
+        activeInternships: internships, jobOpportunities: jobs, studentsPlaced: selected.length,
+        studentsInternships: students.filter((student) => student.applications.some((application) => ['COMPLETED', 'INTERNSHIP_COMPLETED'].includes(application.status))).length,
+        placementPercentage: percent(selected.length, students.length), averagePackage: 'Not tracked', highestPackage: 'Not tracked'
       },
-      departmentWiseAnalysis: []
+      departmentWiseAnalysis: college.departments.map((department) => {
+        const placed = department.students.filter((student) => student.applications.some((application) => ['SELECTED', 'JOINED', 'COMPLETED'].includes(application.status))).length;
+        return { department: department.name, code: department.code, students: department.students.length, placed, placementPercentage: percent(placed, department.students.length) };
+      }),
+      generatedAt: new Date().toISOString()
     });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to load college metrics: ' + error.message });
+    console.error('College dashboard failed:', error);
+    res.status(500).json({ error: 'Could not load college metrics.' });
   }
 });
 
-/**
- * Section 21: Student Dashboard
- * Career-oriented personal metrics from live database
- */
 router.get('/student', authenticate, async (req, res) => {
   try {
-    const studentUser = await prisma.user.findUnique({
-      where: { id: req.user.id },
-      include: {
-        studentProfile: {
-          include: {
-            skills: true,
-            applications: true
-          }
-        }
-      }
+    const profile = await prisma.student.findUnique({
+      where: { userId: req.user.id },
+      include: { skills: { include: { skill: true } }, applications: { include: { opportunity: true } }, certifications: true, projects: true }
     });
-
-    const studentProfile = studentUser?.studentProfile;
-    const skillsCount = studentProfile?.skills?.length || 0;
-    const dbApplicationsCount = studentProfile?.applications?.length || 0;
-    const inMemoryApplicationsCount = typeof internshipApplicationRoutes.getApplicationsCountForUser === 'function'
-      ? internshipApplicationRoutes.getApplicationsCountForUser(req.user.id)
-      : 0;
-    const totalApplications = dbApplicationsCount + inMemoryApplicationsCount;
-
+    if (!profile) return res.status(404).json({ error: 'Student profile not found.' });
+    const candidate = { ...profile, skills: profile.skills.map(({ skill, level }) => ({ name: skill.name, level })) };
+    const opportunities = await prisma.opportunity.findMany({ where: { deadline: { gte: new Date() } }, include: { requiredSkills: { include: { skill: true } } } });
+    const ranked = opportunities.map((opportunity) => ({ opportunity, ...evaluateSkillMatch(candidate, opportunity) })).sort((a, b) => b.matchScore - a.matchScore);
+    const applications = profile.applications;
+    const profileFields = [profile.name, profile.usn, profile.resumeUrl, profile.githubUrl, profile.linkedinUrl, profile.cgpa > 0, profile.skills.length > 0, profile.projects.length > 0, profile.certifications.length > 0];
+    const strongest = ranked[0];
+    const skillGaps = strongest?.skillGaps?.length || 0;
+    const programCount = ENHANCEMENT_PROGRAMS_CATALOG.filter((program) => strongest?.skillGaps?.some((gap) => program.skillsCovered.some((skill) => skill.toLowerCase() === gap.name.toLowerCase()))).length;
     res.json({
-      welcomeMessage: `Welcome, ${req.user.name || 'Student'}`,
+      welcomeMessage: `Welcome, ${profile.name || req.user.name || 'Student'}`,
       metrics: {
-        profileCompletion: studentProfile ? '80%' : '20%',
-        skillMatchScore: skillsCount > 0 ? '60%' : '0%',
-        recommendedInternships: 0,
-        recommendedJobs: 0,
-        applications: totalApplications,
-        shortlisted: 0,
-        interviews: 0,
-        skillGaps: 0,
-        recommendedCourses: 0
+        profileCompletion: percent(profileFields.filter(Boolean).length, profileFields.length),
+        skillMatchScore: strongest ? `${strongest.matchScore}%` : '0%',
+        recommendedInternships: ranked.filter(({ opportunity }) => opportunity.type === 'INTERNSHIP').length,
+        recommendedJobs: ranked.filter(({ opportunity }) => opportunity.type === 'JOB').length,
+        applications: applications.filter((application) => application.status !== 'WITHDRAWN').length,
+        shortlisted: applications.filter((application) => ['SHORTLISTED', 'ASSESSMENT', 'INTERVIEW', 'SELECTED', 'JOINED', 'COMPLETED', 'INTERNSHIP_COMPLETED'].includes(application.status)).length,
+        interviews: applications.filter((application) => application.status === 'INTERVIEW').length,
+        skillGaps, recommendedCourses: programCount
       },
-      quickActions: [
-        { action: 'Complete Profile', endpoint: 'PUT /api/students/academic-profile' },
-        { action: 'Update Skills', endpoint: 'POST /api/students/skills' },
-        { action: 'Upload Resume', endpoint: 'POST /api/upload/resume' },
-        { action: 'Find Internship', endpoint: 'GET /api/internships' },
-        { action: 'Find Jobs', endpoint: 'GET /api/jobs' },
-        { action: 'View Recommendations', endpoint: 'POST /api/opportunities/recommended' },
-        { action: 'View Applications', endpoint: 'GET /api/internship-applications/my-applications' },
-        { action: 'Skill Gap Analysis', endpoint: 'POST /api/matching/gap-analysis' }
-      ]
+      generatedAt: new Date().toISOString()
     });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to load student metrics: ' + error.message });
+    console.error('Student dashboard failed:', error);
+    res.status(500).json({ error: 'Could not load student metrics.' });
   }
 });
 

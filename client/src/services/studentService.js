@@ -21,6 +21,16 @@ export const studentService = {
     return res.data;
   },
 
+  editSkill: async (id, skillData) => {
+    const res = await api.put(`/students/skills/${id}`, skillData);
+    return res.data;
+  },
+
+  removeSkill: async (id) => {
+    const res = await api.delete(`/students/skills/${id}`);
+    return res.data;
+  },
+
   addProject: async (projectData) => {
     const res = await api.post('/students/projects', projectData);
     return res.data;

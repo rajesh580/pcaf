@@ -181,7 +181,7 @@ router.post('/login', async (req, res) => {
       include: {
         college: { select: { id: true, name: true, code: true } },
         department: { select: { id: true, name: true, code: true } },
-        recruiterAt: { select: { id: true, name: true, website: true } },
+        recruiterAt: { select: { id: true, name: true, website: true, isVerified: true } },
         studentProfile: {
           include: {
             college: { select: { id: true, name: true, code: true } },
@@ -213,6 +213,11 @@ router.post('/login', async (req, res) => {
     if (!user.isActive) {
       logAttempt('BLOCKED', 'Account inactive or suspended');
       return res.status(403).json({ error: 'Account is deactivated or suspended. Contact administrator.' });
+    }
+
+    if (['COMPANY_ADMIN', 'COMPANY_RECRUITER'].includes(user.role) && user.recruiterAt && !user.recruiterAt.isVerified) {
+      logAttempt('BLOCKED', 'Company account is not approved');
+      return res.status(403).json({ error: 'This company account is awaiting approval or has been suspended. Contact the platform administrator.' });
     }
 
     if (!user.isVerified) {
@@ -306,6 +311,7 @@ router.post('/login', async (req, res) => {
         id: user.id,
         email: user.email,
         name: user.name,
+        photoUrl: user.photoUrl || null,
         role: user.role,
         isActive: user.isActive,
         isVerified: user.isVerified,

@@ -21,8 +21,8 @@ export const jobService = {
     return res.data;
   },
 
-  applyForJob: async (id, studentPayload) => {
-    const res = await api.post(`/jobs/${id}/apply`, { student: studentPayload });
+  applyForJob: async (id, studentPayload, resumeType) => {
+    const res = await api.post(`/jobs/${id}/apply`, { student: studentPayload, resumeType });
     return res.data;
   }
 };

@@ -23,19 +23,19 @@ export default function CollegeDashboard() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
           <span className="text-xs font-medium text-slate-500 uppercase">Total Students</span>
-          <div className="text-2xl font-bold text-slate-900 mt-1">{kpis.totalStudents || 2850}</div>
+          <div className="text-2xl font-bold text-slate-900 mt-1">{kpis.totalStudents ?? 0}</div>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
           <span className="text-xs font-medium text-slate-500 uppercase">Placement %</span>
-          <div className="text-2xl font-bold text-blue-600 mt-1">{kpis.placementPercentage || '54%'}</div>
+          <div className="text-2xl font-bold text-blue-600 mt-1">{kpis.placementPercentage ?? '0%'}</div>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
           <span className="text-xs font-medium text-slate-500 uppercase">Average CTC</span>
-          <div className="text-2xl font-bold text-emerald-600 mt-1">{kpis.averagePackage || '₹7.2 LPA'}</div>
+          <div className="text-2xl font-bold text-emerald-600 mt-1">{kpis.averagePackage ?? 'Not tracked'}</div>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
           <span className="text-xs font-medium text-slate-500 uppercase">Highest CTC</span>
-          <div className="text-2xl font-bold text-indigo-600 mt-1">{kpis.highestPackage || '₹24 LPA'}</div>
+          <div className="text-2xl font-bold text-blue-600 mt-1">{kpis.highestPackage ?? 'Not tracked'}</div>
         </div>
       </div>
 

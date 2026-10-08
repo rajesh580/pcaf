@@ -16,6 +16,11 @@ export const skillMatchService = {
     return res.data;
   },
 
+  analyzeMySkillGaps: async (target) => {
+    const res = await api.post('/matching/gap-analysis/mine', target);
+    return res.data;
+  },
+
   getRecommendedOpportunities: async (student) => {
     const res = await api.post('/opportunities/recommended', { student });
     return res.data;

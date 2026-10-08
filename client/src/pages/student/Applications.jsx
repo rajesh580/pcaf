@@ -38,7 +38,7 @@ export default function Applications() {
       case 'ASSESSMENT':
       case 'TECHNICAL_INTERVIEW':
       case 'HR_INTERVIEW':
-        return 'bg-indigo-100 text-indigo-800 border-indigo-300';
+        return 'bg-blue-100 text-blue-800 border-blue-300';
       case 'SHORTLISTED':
         return 'bg-blue-100 text-blue-800 border-blue-300';
       case 'REJECTED':
@@ -112,7 +112,7 @@ export default function Applications() {
                     {a.selectionRoundDetails && (
                       <button
                         onClick={() => setRoundModal(a)}
-                        className="text-indigo-600 hover:underline font-bold"
+                        className="text-blue-600 hover:underline font-bold"
                       >
                         View Test/Interview Link
                       </button>

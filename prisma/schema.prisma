@@ -32,10 +32,14 @@ enum ApplicationStatus {
   UNDER_REVIEW
   SHORTLISTED
   ASSESSMENT
+  TECHNICAL_INTERVIEW
+  HR_INTERVIEW
   INTERVIEW
   SELECTED
   REJECTED
   JOINED
+  INTERNSHIP_STARTED
+  INTERNSHIP_COMPLETED
   COMPLETED
   WITHDRAWN
 }
@@ -55,6 +59,7 @@ model User {
   id           String   @id @default(uuid())
   email        String   @unique
   name         String?
+  photoUrl     String?
   passwordHash String
   role         Role     @default(STUDENT)
   isActive     Boolean  @default(true)
@@ -71,6 +76,8 @@ model User {
   collegeAdmin   College? @relation("CollegeAdmin")
   recruiterAtId  String?
   recruiterAt    Company? @relation("CompanyRecruiter", fields: [recruiterAtId], references: [id])
+  trainingEnrollments TrainingEnrollment[]
+  publishedTrainingPrograms TrainingProgram[] @relation("TrainingProgramProvider")
 }
 
 model College {
@@ -150,6 +157,7 @@ model Company {
   name          String
   website       String?
   isVerified    Boolean       @default(false)
+  verificationStatus String   @default("PENDING_VERIFICATION")
   recruiters    User[]        @relation("CompanyRecruiter")
   opportunities Opportunity[]
   createdAt     DateTime      @default(now())
@@ -161,6 +169,18 @@ model Opportunity {
   company           Company            @relation(fields: [companyId], references: [id])
   title             String
   description       String?
+  location          String?
+  duration          String?
+  stipend           String?
+  salary            String?
+  requiredDegree    String?
+  internshipType    String?
+  employmentType    String?
+  experience        String?
+  numberOfPositions  Int                @default(1)
+  selectionProcess  String[]            @default([])
+  preferredSkills   String[]            @default([])
+  status            String              @default("ACTIVE")
   type              OpportunityType
   workMode          WorkMode
   minCgpa           Float              @default(0.0)
@@ -191,6 +211,9 @@ model Application {
   opportunityId String
   status        ApplicationStatus @default(APPLIED)
   matchScore    Float
+  statusTimeline Json                @default("[]")
+  selectionRoundDetails Json?
+  offerLetterUrl String?
   createdAt     DateTime          @default(now())
   student       Student           @relation(fields: [studentId], references: [id])
   opportunity   Opportunity       @relation(fields: [opportunityId], references: [id])
@@ -221,4 +244,37 @@ model Project {
   studentId String
   title     String
   student   Student @relation(fields: [studentId], references: [id])
+}
+
+model TrainingEnrollment {
+  id            String   @id @default(uuid())
+  userId        String
+  programId     String
+  programTitle  String
+  status        String   @default("IN_PROGRESS")
+  score         Int?
+  certificateCode String? @unique
+  enrolledAt    DateTime @default(now())
+  completedAt   DateTime?
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, programId])
+  @@index([userId, status])
+}
+
+model TrainingProgram {
+  id             String   @id @default(uuid())
+  title          String
+  domain         String
+  skillsCovered  String[]
+  mode           WorkMode @default(ONLINE)
+  format         String
+  durationWeeks  Int
+  provider       String
+  providerUserId String
+  assessmentType String
+  createdAt      DateTime @default(now())
+  providerUser   User     @relation("TrainingProgramProvider", fields: [providerUserId], references: [id], onDelete: Cascade)
+
+  @@index([providerUserId, createdAt])
 }

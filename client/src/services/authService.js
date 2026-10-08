@@ -46,6 +46,15 @@ export const authService = {
     return userStr ? JSON.parse(userStr) : null;
   },
 
+  updateCurrentUser: (updates) => {
+    const currentUser = authService.getCurrentUser();
+    if (!currentUser) return null;
+    const updatedUser = { ...currentUser, ...updates };
+    localStorage.setItem('pfac_user', JSON.stringify(updatedUser));
+    window.dispatchEvent(new Event('pfac-profile-updated'));
+    return updatedUser;
+  },
+
   getDashboardRouting: () => {
     const routingStr = localStorage.getItem('pfac_routing');
     return routingStr ? JSON.parse(routingStr) : null;

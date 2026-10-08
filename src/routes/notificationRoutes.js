@@ -48,7 +48,9 @@ router.get('/', authenticate, (req, res) => {
   const role = req.user.role || 'STUDENT';
 
   const userNotifs = centralNotifications.filter((n) =>
-    n.recipientId === userId || n.recipientRole === role || n.recipientId === 'broadcast'
+    n.recipientId === userId ||
+    (n.recipientId === 'broadcast' && (!n.recipientRole || n.recipientRole === role)) ||
+    (n.recipientRole && n.recipientRole === role)
   );
 
   const unreadCount = userNotifs.filter((n) => !n.isRead).length;
@@ -87,5 +89,6 @@ router.post('/dispatch', authenticate, (req, res) => {
 
 module.exports = {
   router,
-  sendNotification
+  sendNotification,
+  centralNotifications
 };

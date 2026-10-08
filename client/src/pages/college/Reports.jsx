@@ -41,13 +41,14 @@ export default function CollegeReports() {
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200">
           <span className="text-xs uppercase font-medium text-slate-500">Internship to PPO Conversion</span>
-          <div className="text-2xl font-bold text-indigo-600 mt-1">{report?.internshipToJobConversionRate ?? '0%'}</div>
+          <div className="text-2xl font-bold text-blue-600 mt-1">{report?.internshipToJobConversionRate ?? '0%'}</div>
         </div>
       </div>
 
       {/* Department-wise Placement Breakdown */}
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
         <div className="p-4 border-b border-slate-200 font-bold text-sm text-slate-900">Department-wise Hiring Statistics</div>
+        <div className="px-4 py-3 text-xs text-slate-500">Package figures and internship conversion are not tracked in the current data model.</div>
         <table className="w-full text-left text-sm">
           <thead className="bg-slate-50 text-xs text-slate-500 uppercase border-b border-slate-200">
             <tr>
@@ -55,8 +56,7 @@ export default function CollegeReports() {
               <th className="py-3 px-4">Total Cohort</th>
               <th className="py-3 px-4">Students Placed</th>
               <th className="py-3 px-4">Placement %</th>
-              <th className="py-3 px-4">Average CTC</th>
-              <th className="py-3 px-4">Highest CTC</th>
+              <th className="py-3 px-4">Applications</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -66,12 +66,14 @@ export default function CollegeReports() {
                 <td className="py-3 px-4 text-slate-700">{row.total}</td>
                 <td className="py-3 px-4 font-semibold text-emerald-600">{row.placed}</td>
                 <td className="py-3 px-4 font-bold text-blue-600">{row.percentage}</td>
-                <td className="py-3 px-4 text-slate-700">{row.avgCtc}</td>
-                <td className="py-3 px-4 font-bold text-indigo-600">{row.highestCtc}</td>
+                <td className="py-3 px-4 text-slate-700">{row.applications ?? 0}</td>
               </tr>
             ))}
           </tbody>
         </table>
+        {(report?.departmentWisePlacement || []).length === 0 && (
+          <p className="p-6 text-center text-sm text-slate-500">No department placement records are available for this college yet.</p>
+        )}
       </div>
     </div>
   );

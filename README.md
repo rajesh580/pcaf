@@ -85,3 +85,17 @@ npm run dev
 
 - **Backend**: Runs on `http://localhost:5000`
 - **Frontend**: Runs on `http://localhost:3000` (proxied to port 5000)
+
+## Student training workflow
+
+Students can browse and filter the training catalog at `/student/training`, enroll once in a program, and record a passing assessment result. A completion is saved with the enrollment, score, and certificate code; covered skills and the certification record are added to the student's profile. Enrollment is tied to the signed-in student account and survives server restarts.
+
+The current skill, recruitment, and training workflows use the Prisma schema additions for persistent opportunities, application stages, company approval, training programs, and enrollments. After updating the project, apply the additive schema change to the configured database before starting the API:
+
+```bash
+npm run prisma:db-push
+npm run build
+npm start
+```
+
+For local development, run the database push once before `npm run dev`. The curated training catalog is bundled with the application; provider-published programs and student enrollments are stored in the database. Assessment scores are entered as results from the program's external assessment; this version does not host or proctor those assessments. Package statistics, SMS/WhatsApp, hosted assessments, and AI resume/JD parsing remain outside this release.

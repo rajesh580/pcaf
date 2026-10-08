@@ -1,0 +1,17 @@
+import React, { useEffect, useState } from 'react';
+import api from '../../services/api';
+
+export default function CompanyReports() {
+  const [report, setReport] = useState(null);
+  const [error, setError] = useState('');
+  useEffect(() => { api.get('/reports/company-report').then(({ data }) => setReport(data)).catch((e) => setError(e.response?.data?.error || 'Could not load recruitment report.')); }, []);
+  if (error) return <div role="alert" className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">{error}</div>;
+  if (!report) return <p className="py-10 text-center text-sm text-slate-500">Loading recruitment report…</p>;
+  const metrics = [['Applications', report.applicationsReceived], ['Shortlisted', report.shortlistingSummary.shortlisted], ['Interviews', report.selectionRatio.interviewsConducted], ['Selected', report.selectionRatio.finalOffersMade]];
+  return <div className="space-y-6"><header className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-wide text-blue-600">Recruitment analytics</p><h1 className="mt-1 text-2xl font-bold text-slate-900">Company report</h1><p className="mt-1 text-sm text-slate-500">{report.company} · Data from your company's opportunities</p></div><button onClick={() => window.print()} className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-white">Print / save PDF</button></header>
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">{metrics.map(([label, value]) => <div key={label} className="rounded-xl border border-slate-200 bg-white p-4"><p className="text-xs uppercase text-slate-500">{label}</p><p className="mt-1 text-2xl font-bold text-slate-900">{value}</p></div>)}</div>
+    <div className="grid gap-4 sm:grid-cols-2"><div className="rounded-xl border border-slate-200 bg-white p-5"><p className="text-xs uppercase text-slate-500">Shortlist rate</p><p className="mt-2 text-3xl font-bold text-amber-700">{report.shortlistingSummary.shortlistRate}</p></div><div className="rounded-xl border border-slate-200 bg-white p-5"><p className="text-xs uppercase text-slate-500">Selection rate</p><p className="mt-2 text-3xl font-bold text-emerald-700">{report.selectionRatio.conversionRate}</p></div></div>
+    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white"><div className="border-b px-5 py-4"><h2 className="font-semibold text-slate-900">Applicants by department</h2></div>{report.departmentWiseApplicants.length ? <div className="divide-y divide-slate-100">{report.departmentWiseApplicants.map((item) => <div key={item.department} className="flex justify-between px-5 py-3 text-sm"><span>{item.department}</span><span className="font-semibold">{item.applicants}</span></div>)}</div> : <p className="p-5 text-sm text-slate-500">No applications are recorded yet.</p>}</section>
+    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white"><div className="border-b px-5 py-4"><h2 className="font-semibold text-slate-900">Opportunity performance</h2></div>{report.opportunities.length ? <div className="divide-y divide-slate-100">{report.opportunities.map((item) => <div key={item.id} className="flex flex-wrap justify-between gap-2 px-5 py-3 text-sm"><span className="font-medium">{item.title} <span className="ml-1 text-xs text-slate-500">{item.type}</span></span><span>{item.applications} applications</span></div>)}</div> : <p className="p-5 text-sm text-slate-500">No opportunities have been published yet.</p>}</section>
+  </div>;
+}
