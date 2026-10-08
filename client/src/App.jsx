@@ -28,6 +28,7 @@ import StudentPpoTracker from './pages/student/PpoTracker';
 import CollegeDashboard from './pages/college/Dashboard';
 import CollegeDepartments from './pages/college/Departments';
 import CollegeReports from './pages/college/Reports';
+import CollegeStudents from './pages/college/Students';
 
 // Company Persona Pages
 import CompanyDashboard from './pages/company/Dashboard';
@@ -105,6 +106,7 @@ export default function App() {
           {/* College Persona Routes */}
           <Route path="dashboard/college" element={<CollegeDashboard />} />
           <Route path="college/departments" element={<CollegeDepartments />} />
+          <Route path="college/students" element={<CollegeStudents />} />
           <Route path="college/reports" element={<CollegeReports />} />
 
           {/* Company Persona Routes */}

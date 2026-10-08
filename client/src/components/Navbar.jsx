@@ -44,16 +44,19 @@ const roleLinks = {
   ],
   COLLEGE_ADMIN: [
     ['/dashboard/college', 'Overview', LayoutDashboard],
+    ['/college/students', 'Enrolled Students', Users],
     ['/college/departments', 'Departments', Building],
     ['/college/reports', 'Analytics & Reports', BarChart3]
   ],
   DEPARTMENT_ADMIN: [
     ['/dashboard/college', 'Overview', LayoutDashboard],
+    ['/college/students', 'Enrolled Students', Users],
     ['/college/departments', 'Departments', Building],
     ['/college/reports', 'Analytics & Reports', BarChart3]
   ],
   FACULTY_COORDINATOR: [
     ['/dashboard/college', 'Overview', LayoutDashboard],
+    ['/college/students', 'Enrolled Students', Users],
     ['/college/departments', 'Departments', Building],
     ['/college/reports', 'Analytics & Reports', BarChart3]
   ],

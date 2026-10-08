@@ -221,4 +221,132 @@ router.get('/departments/:code/placement-data', authenticate, (req, res) => {
   res.json({ department: code, metrics: data });
 });
 
+/**
+ * 6. Get Enrolled Students for College Admin / Department Admin
+ */
+router.get('/students', authenticate, async (req, res) => {
+  try {
+    let whereClause = { role: 'STUDENT' };
+
+    let collegeId = req.user.collegeId;
+    if (!collegeId && req.user.role === 'COLLEGE_ADMIN') {
+      const clg = await prisma.college.findFirst({
+        where: { OR: [{ adminUserId: req.user.id }, { id: req.user.collegeId || '' }] }
+      });
+      if (clg) collegeId = clg.id;
+    }
+
+    if (collegeId) {
+      whereClause.OR = [
+        { collegeId: collegeId },
+        { studentProfile: { collegeId: collegeId } }
+      ];
+    }
+
+    if (req.user.role === 'DEPARTMENT_ADMIN' || req.user.role === 'FACULTY_COORDINATOR') {
+      let deptId = req.user.departmentId;
+      if (deptId) {
+        whereClause.OR = [
+          { departmentId: deptId },
+          { studentProfile: { departmentId: deptId } },
+          { studentProfile: { department: { code: deptId.toUpperCase() } } }
+        ];
+      }
+    }
+
+    const studentUsers = await prisma.user.findMany({
+      where: whereClause,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        isActive: true,
+        isVerified: true,
+        createdAt: true,
+        photoUrl: true,
+        studentProfile: {
+          select: {
+            id: true,
+            usn: true,
+            cgpa: true,
+            semester: true,
+            admissionYear: true,
+            graduationYear: true,
+            backlogs: true,
+            resumeUrl: true,
+            githubUrl: true,
+            linkedinUrl: true,
+            department: { select: { code: true, name: true } },
+            college: { select: { name: true, code: true } },
+            skills: { select: { level: true, skill: { select: { name: true, category: true } } } },
+            certifications: { select: { name: true } },
+            projects: { select: { title: true } },
+            applications: {
+              select: {
+                id: true,
+                status: true,
+                createdAt: true,
+                matchScore: true,
+                opportunity: { select: { title: true, type: true, company: { select: { name: true } } } },
+              },
+              orderBy: { createdAt: 'desc' },
+              take: 10,
+            },
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json({ total: studentUsers.length, students: studentUsers });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch enrolled students: ' + error.message });
+  }
+});
+
+/**
+ * 7. Get Single Enrolled Student Detailed Profile
+ */
+router.get('/students/:studentUserId', authenticate, async (req, res) => {
+  try {
+    const studentUser = await prisma.user.findUnique({
+      where: { id: req.params.studentUserId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        isActive: true,
+        isVerified: true,
+        createdAt: true,
+        photoUrl: true,
+        studentProfile: {
+          include: {
+            department: true,
+            college: true,
+            skills: { include: { skill: true } },
+            certifications: true,
+            projects: true,
+            applications: {
+              include: {
+                opportunity: { include: { company: true } }
+              },
+              orderBy: { createdAt: 'desc' }
+            }
+          }
+        }
+      }
+    });
+
+    if (!studentUser) {
+      return res.status(404).json({ error: 'Student profile not found.' });
+    }
+
+    res.json({ student: studentUser });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch student details: ' + error.message });
+  }
+});
+
 module.exports = router;
