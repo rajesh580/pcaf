@@ -347,7 +347,7 @@ export default function CollegeDepartments() {
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
         <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
           <h3 className="font-bold text-slate-900 dark:text-white text-base font-display flex items-center gap-2">
-            <GraduationCap className="w-5 h-5 text-purple-600" />
+            <GraduationCap className="w-5 h-5 text-blue-600" />
             Academic Department Master List ({departments.length})
           </h3>
         </div>
