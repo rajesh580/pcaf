@@ -43,7 +43,7 @@ export default function StudentDashboard() {
   return (
     <div className="space-y-8">
       {/* Header Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-6 md:p-8 text-white shadow-xl border border-slate-800">
+      <div className="relative overflow-hidden bg-slate-900 rounded-2xl p-6 md:p-8 text-white shadow-md border border-slate-800">
         <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-2 max-w-2xl">
@@ -59,7 +59,7 @@ export default function StudentDashboard() {
           </div>
           <Link
             to="/student/standardized-resume"
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs shadow-lg shadow-blue-600/30 transition transform hover:-translate-y-0.5"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-500 hover:via-purple-500 hover:to-indigo-600 text-white font-bold text-xs shadow-md shadow-purple-600/25 transition transform hover:-translate-y-0.5"
           >
             <FileCheck className="w-4 h-4" />
             <span>Standardized ATS Resume</span>

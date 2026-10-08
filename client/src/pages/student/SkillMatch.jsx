@@ -102,7 +102,7 @@ export default function SkillMatch() {
       )}
 
       {/* AI Job Description Instant Extractor */}
-      <div className="bg-gradient-to-br from-indigo-900 via-slate-900 to-slate-950 p-6 rounded-2xl text-white shadow-lg space-y-4">
+      <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl text-white shadow-md space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
@@ -119,14 +119,14 @@ export default function SkillMatch() {
             value={jdText}
             onChange={(e) => setJdText(e.target.value)}
             placeholder="Paste raw Job Description (JD) text here..."
-            className="w-full rounded-xl border border-slate-700 bg-slate-800/80 p-3 text-xs text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-xl border border-slate-700 bg-slate-800/80 p-3 text-xs text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none"
           />
           <div className="flex justify-end">
             <button
               type="button"
               onClick={parseJdText}
               disabled={!jdText.trim() || parsingJd}
-              className="inline-flex items-center gap-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 transition disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 hover:from-indigo-500 hover:via-purple-500 hover:to-indigo-600 text-white font-bold text-xs px-5 py-2.5 transition shadow-md shadow-purple-600/25 disabled:opacity-50"
             >
               <Sparkles className="w-4 h-4" />
               <span>{parsingJd ? 'Extracting Skills...' : 'Auto-Extract Skills & Fill Form'}</span>

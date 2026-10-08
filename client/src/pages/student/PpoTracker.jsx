@@ -157,7 +157,7 @@ export default function StudentPpoTracker() {
 
           {/* PPO Formal Offer Card (if extended) */}
           {record.ppoDetails?.offered && (
-            <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-6 md:p-8 rounded-2xl border border-indigo-500/30 text-white shadow-xl space-y-6">
+            <div className="bg-slate-900 p-6 md:p-8 rounded-2xl border border-slate-800 text-white shadow-md space-y-6">
               <div className="flex flex-wrap items-center justify-between gap-4 border-b border-indigo-900/60 pb-4">
                 <div className="flex items-center space-x-3">
                   <div className="p-3 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30">

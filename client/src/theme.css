@@ -118,9 +118,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   display: grid;
   place-items: center;
   border-radius: 10px;
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
   color: white;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.45);
 }
 
 .pfac-brand strong {
@@ -182,9 +182,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 .sidebar-link.is-active {
   color: #ffffff;
-  background: rgba(37, 99, 235, 0.15);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.2));
   font-weight: 600;
-  border: 1px solid rgba(59, 130, 246, 0.25);
+  border: 1px solid rgba(168, 85, 247, 0.4);
 }
 
 .sidebar-link-icon {
@@ -197,11 +197,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 }
 
 .sidebar-link:hover .sidebar-link-icon {
-  color: #60a5fa;
+  color: #c084fc;
 }
 
 .sidebar-link.is-active .sidebar-link-icon {
-  color: #60a5fa;
+  color: #c084fc;
 }
 
 .sidebar-active-mark {
@@ -209,8 +209,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #3b82f6;
-  box-shadow: 0 0 8px #3b82f6;
+  background: #c084fc;
+  box-shadow: 0 0 10px #c084fc;
 }
 
 .sidebar-bottom {
