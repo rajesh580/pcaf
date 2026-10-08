@@ -7,6 +7,7 @@ import ForgotPassword from './pages/auth/ForgotPassword';
 import VerifyEmail from './pages/auth/VerifyEmail';
 import Search from './pages/Search';
 import Settings from './pages/Settings';
+import { authService } from './services/authService';
 
 // Student Persona Pages
 import StudentDashboard from './pages/student/Dashboard';
@@ -21,6 +22,7 @@ import SkillMatch from './pages/student/SkillMatch';
 import StandardizedResume from './pages/student/StandardizedResume';
 import StudentTraining from './pages/student/Training';
 import StudentCareerReport from './pages/student/CareerReport';
+import StudentPpoTracker from './pages/student/PpoTracker';
 
 // College Persona Pages
 import CollegeDashboard from './pages/college/Dashboard';
@@ -38,12 +40,46 @@ import AdminDashboard from './pages/admin/Dashboard';
 import AdminCompanyDetail from './pages/admin/CompanyDetail';
 import AdminCollegeDetail from './pages/admin/CollegeDetail';
 
+// Smart Dashboard Redirection Component
+function DashboardRedirect() {
+  const user = authService.getCurrentUser();
+  const routing = authService.getDashboardRouting();
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (routing && routing.dashboardRoute) {
+    return <Navigate to={routing.dashboardRoute} replace />;
+  }
+
+  switch (user.role) {
+    case 'COLLEGE_ADMIN':
+    case 'DEPARTMENT_ADMIN':
+    case 'FACULTY_COORDINATOR':
+      return <Navigate to="/dashboard/college" replace />;
+    case 'COMPANY_ADMIN':
+    case 'COMPANY_RECRUITER':
+      return <Navigate to="/dashboard/company" replace />;
+    case 'SUPER_ADMIN':
+    case 'PLATFORM_ADMIN':
+      return <Navigate to="/dashboard/admin" replace />;
+    case 'SKILL_PROVIDER':
+    case 'MENTOR':
+      return <Navigate to="/dashboard/skill-provider" replace />;
+    case 'STUDENT':
+    default:
+      return <Navigate to="/dashboard/student" replace />;
+  }
+}
+
 export default function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
         <Route path="/" element={<MainLayout />}>
-          <Route index element={<Navigate to="/login" replace />} />
+          <Route index element={<DashboardRedirect />} />
+          <Route path="dashboard" element={<DashboardRedirect />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
           <Route path="verify-email" element={<VerifyEmail />} />
@@ -64,6 +100,7 @@ export default function App() {
           <Route path="student/skill-match" element={<SkillMatch />} />
           <Route path="student/training" element={<StudentTraining />} />
           <Route path="student/report" element={<StudentCareerReport />} />
+          <Route path="student/ppo-tracker" element={<StudentPpoTracker />} />
 
           {/* College Persona Routes */}
           <Route path="dashboard/college" element={<CollegeDashboard />} />
@@ -84,7 +121,7 @@ export default function App() {
           <Route path="admin/companies/:companyId" element={<AdminCompanyDetail />} />
 
           {/* Fallback */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>

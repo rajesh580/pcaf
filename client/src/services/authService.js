@@ -7,6 +7,7 @@ export const authService = {
       localStorage.setItem('pfac_token', response.data.token);
       localStorage.setItem('pfac_user', JSON.stringify(response.data.user));
       localStorage.setItem('pfac_routing', JSON.stringify(response.data.routing));
+      window.dispatchEvent(new Event('pfac-profile-updated'));
     }
     return response.data;
   },
@@ -38,6 +39,7 @@ export const authService = {
       localStorage.removeItem('pfac_token');
       localStorage.removeItem('pfac_user');
       localStorage.removeItem('pfac_routing');
+      window.dispatchEvent(new Event('pfac-profile-updated'));
     }
   },
 

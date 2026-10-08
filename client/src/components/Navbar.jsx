@@ -1,38 +1,97 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { authService } from '../services/authService';
+import NotificationsDrawer from './NotificationsDrawer';
+import {
+  LayoutDashboard,
+  GraduationCap,
+  Briefcase,
+  FileText,
+  BookOpen,
+  BarChart3,
+  User,
+  FileCheck,
+  Building2,
+  Building,
+  Users,
+  Radio,
+  ShieldAlert,
+  Search,
+  Settings,
+  Sun,
+  Moon,
+  LogOut,
+  Sparkles,
+  Award,
+  ChevronRight,
+  Menu,
+  X,
+  Target
+} from 'lucide-react';
 
 const roleLinks = {
   STUDENT: [
-    ['/dashboard/student', 'Overview', 'OV'], ['/student/internships', 'Internships', 'IN'],
-    ['/student/jobs', 'Placement jobs', 'JB'], ['/student/applications', 'Applications', 'AP'],
-    ['/student/training', 'Training', 'TR'], ['/student/report', 'Career report', 'CR'],
-    ['/student/profile', 'My profile', 'PR'], ['/student/standardized-resume', 'ATS resume', 'CV'],
+    ['/dashboard/student', 'Overview', LayoutDashboard],
+    ['/student/internships', 'Internships', GraduationCap],
+    ['/student/jobs', 'Placement Jobs', Briefcase],
+    ['/student/applications', 'Applications', FileText],
+    ['/student/skill-match', 'Skill Gap Match', Target],
+    ['/student/training', 'Training Programs', BookOpen],
+    ['/student/report', 'Career Report', BarChart3],
+    ['/student/ppo-tracker', 'PPO Offer Tracker', Award],
+    ['/student/profile', 'My Profile', User],
+    ['/student/standardized-resume', 'ATS Resume Builder', FileCheck],
   ],
-  COLLEGE_ADMIN: [['/dashboard/college', 'Overview', 'OV'], ['/college/departments', 'Departments', 'DP'], ['/college/reports', 'Reports', 'RP']],
-  DEPARTMENT_ADMIN: [['/dashboard/college', 'Overview', 'OV'], ['/college/departments', 'Departments', 'DP'], ['/college/reports', 'Reports', 'RP']],
-  FACULTY_COORDINATOR: [['/dashboard/college', 'Overview', 'OV'], ['/college/departments', 'Departments', 'DP'], ['/college/reports', 'Reports', 'RP']],
-  COMPANY_ADMIN: [['/dashboard/company', 'Overview', 'OV'], ['/company/recruitment', 'Recruitment', 'RC'], ['/company/recruitment?tab=candidates', 'Talent search', 'TS'], ['/company/reports', 'Reports', 'RP']],
-  COMPANY_RECRUITER: [['/dashboard/company', 'Overview', 'OV'], ['/company/recruitment', 'Recruitment', 'RC'], ['/company/recruitment?tab=candidates', 'Talent search', 'TS'], ['/company/reports', 'Reports', 'RP']],
-  SKILL_PROVIDER: [['/dashboard/skill-provider', 'Programs & enrollments', 'PE']],
-  MENTOR: [['/dashboard/skill-provider', 'Skill hub', 'SH']],
+  COLLEGE_ADMIN: [
+    ['/dashboard/college', 'Overview', LayoutDashboard],
+    ['/college/departments', 'Departments', Building],
+    ['/college/reports', 'Analytics & Reports', BarChart3]
+  ],
+  DEPARTMENT_ADMIN: [
+    ['/dashboard/college', 'Overview', LayoutDashboard],
+    ['/college/departments', 'Departments', Building],
+    ['/college/reports', 'Analytics & Reports', BarChart3]
+  ],
+  FACULTY_COORDINATOR: [
+    ['/dashboard/college', 'Overview', LayoutDashboard],
+    ['/college/departments', 'Departments', Building],
+    ['/college/reports', 'Analytics & Reports', BarChart3]
+  ],
+  COMPANY_ADMIN: [
+    ['/dashboard/company', 'Overview', LayoutDashboard],
+    ['/company/recruitment', 'Recruitment Portal', Briefcase],
+    ['/company/recruitment?tab=candidates', 'Talent Search', Search],
+    ['/company/reports', 'Hiring Analytics', BarChart3]
+  ],
+  COMPANY_RECRUITER: [
+    ['/dashboard/company', 'Overview', LayoutDashboard],
+    ['/company/recruitment', 'Recruitment Portal', Briefcase],
+    ['/company/recruitment?tab=candidates', 'Talent Search', Search],
+    ['/company/reports', 'Hiring Analytics', BarChart3]
+  ],
+  SKILL_PROVIDER: [
+    ['/dashboard/skill-provider', 'Programs & Enrollments', BookOpen]
+  ],
+  MENTOR: [
+    ['/dashboard/skill-provider', 'Skill Hub', Sparkles]
+  ],
   SUPER_ADMIN: [
-    ['/dashboard/admin?tab=overview', 'Overview', 'OV'],
-    ['/dashboard/admin?tab=users', 'User Directory', 'US'],
-    ['/dashboard/admin?tab=students', 'Student Profiles', 'ST'],
-    ['/dashboard/admin?tab=colleges', 'Colleges', 'CL'],
-    ['/dashboard/admin?tab=companies', 'Industry Partners', 'CP'],
-    ['/dashboard/admin?tab=broadcast', 'System Broadcast', 'BC'],
-    ['/dashboard/admin?tab=audit', 'Audit Logs', 'AU'],
+    ['/dashboard/admin?tab=overview', 'Overview', LayoutDashboard],
+    ['/dashboard/admin?tab=users', 'User Directory', Users],
+    ['/dashboard/admin?tab=students', 'Student Profiles', GraduationCap],
+    ['/dashboard/admin?tab=colleges', 'Colleges', Building],
+    ['/dashboard/admin?tab=companies', 'Industry Partners', Building2],
+    ['/dashboard/admin?tab=broadcast', 'System Broadcast', Radio],
+    ['/dashboard/admin?tab=audit', 'Audit Logs', ShieldAlert],
   ],
   PLATFORM_ADMIN: [
-    ['/dashboard/admin?tab=overview', 'Overview', 'OV'],
-    ['/dashboard/admin?tab=users', 'User Directory', 'US'],
-    ['/dashboard/admin?tab=students', 'Student Profiles', 'ST'],
-    ['/dashboard/admin?tab=colleges', 'Colleges', 'CL'],
-    ['/dashboard/admin?tab=companies', 'Industry Partners', 'CP'],
-    ['/dashboard/admin?tab=broadcast', 'System Broadcast', 'BC'],
-    ['/dashboard/admin?tab=audit', 'Audit Logs', 'AU'],
+    ['/dashboard/admin?tab=overview', 'Overview', LayoutDashboard],
+    ['/dashboard/admin?tab=users', 'User Directory', Users],
+    ['/dashboard/admin?tab=students', 'Student Profiles', GraduationCap],
+    ['/dashboard/admin?tab=colleges', 'Colleges', Building],
+    ['/dashboard/admin?tab=companies', 'Industry Partners', Building2],
+    ['/dashboard/admin?tab=broadcast', 'System Broadcast', Radio],
+    ['/dashboard/admin?tab=audit', 'Audit Logs', ShieldAlert],
   ],
 };
 
@@ -69,8 +128,9 @@ export default function Navbar() {
     navigate('/login');
   };
 
-  const links = roleLinks[user?.role] || [['/', 'Dashboard', 'OV']];
+  const links = roleLinks[user?.role] || [['/', 'Dashboard', LayoutDashboard]];
   const entity = user?.company?.name || user?.recruiterAt?.name || user?.college?.name || user?.college?.code;
+  
   const activeLink = (to) => {
     const [path, query] = to.split('?');
     if (path !== location.pathname) return false;
@@ -81,40 +141,123 @@ export default function Navbar() {
 
   return (
     <>
-      <button className="mobile-menu-toggle" type="button" onClick={() => setMobileOpen((open) => !open)} aria-expanded={mobileOpen} aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'}>
-        <span>{mobileOpen ? '×' : '☰'}</span><span>PFAC</span>
+      <button 
+        className="mobile-menu-toggle" 
+        type="button" 
+        onClick={() => setMobileOpen((open) => !open)} 
+        aria-expanded={mobileOpen} 
+        aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'}
+      >
+        {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        <span>PFAC</span>
       </button>
+
       {mobileOpen && <button className="mobile-nav-scrim" type="button" aria-label="Close navigation" onClick={() => setMobileOpen(false)} />}
+
       <aside className={`pfac-sidebar ${mobileOpen ? 'is-open' : ''}`}>
-        <Link to={user ? links[0][0] : '/'} className="pfac-brand">
-          <span className="pfac-brand-mark">P</span>
-          <span><strong>PFAC</strong><small>Campus to career</small></span>
-        </Link>
-
-        {user ? <>
-          <div className="sidebar-section-label">WORKSPACE</div>
-          <nav className="sidebar-navigation" aria-label="Main navigation">
-            {links.map(([to, label, icon]) => (
-              <Link key={to} to={to} className={`sidebar-link ${activeLink(to) ? 'is-active' : ''}`} aria-current={activeLink(to) ? 'page' : undefined}>
-                <span className="sidebar-link-icon">{icon}</span><span>{label}</span>{activeLink(to) && <span className="sidebar-active-mark" />}
-              </Link>
-            ))}
-          </nav>
-
-          <div className="sidebar-bottom">
-            <div className="sidebar-section-label">ACCOUNT</div>
-            <Link to="/search" className={`sidebar-link ${location.pathname === '/search' ? 'is-active' : ''}`}><span className="sidebar-link-icon">⌕</span><span>Search portal</span></Link>
-            <Link to="/settings" className={`sidebar-link ${location.pathname === '/settings' ? 'is-active' : ''}`}><span className="sidebar-link-icon">⚙</span><span>Settings</span></Link>
-            <button type="button" className="sidebar-link theme-switch" onClick={toggleTheme}><span className="sidebar-link-icon">{theme === 'dark' ? '☼' : '◐'}</span><span>{theme === 'dark' ? 'Light appearance' : 'Dark appearance'}</span></button>
-            <div className="sidebar-user">
-              <span className="sidebar-avatar">{user.photoUrl ? <img src={user.photoUrl} alt="" /> : (user.name || user.email || 'U').trim().slice(0, 1).toUpperCase()}</span>
-              <span className="sidebar-user-copy"><strong>{user.name || 'Account'}</strong><small>{entity || roleLabel(user.role)}</small></span>
-              <button type="button" onClick={handleLogout} className="sidebar-logout" title="Log out" aria-label="Log out">↗</button>
+        <div className="flex items-center justify-between pr-2 border-b border-slate-800/60 pb-1">
+          <Link to={user ? links[0][0] : '/'} className="pfac-brand border-b-0 mb-0">
+            <div className="pfac-brand-mark">
+              <Sparkles className="w-5 h-5 text-white" />
             </div>
-          </div>
-        </> : <div className="sidebar-auth-links"><p>Build stronger pathways from campus to career.</p><Link to="/login">Sign in <span>→</span></Link><Link to="/register">Create an account <span>→</span></Link></div>}
+            <div>
+              <strong>PFAC PORTAL</strong>
+              <small>Academia & Industry Hub</small>
+            </div>
+          </Link>
+          {user && <NotificationsDrawer />}
+        </div>
 
-        <div className="sidebar-footer"><span className="sidebar-footer-dot" /> Academia + industry, in one place</div>
+        {user ? (
+          <>
+            <div className="sidebar-section-label">Main Menu</div>
+            <nav className="sidebar-navigation" aria-label="Main navigation">
+              {links.map(([to, label, IconComponent]) => {
+                const isActive = activeLink(to);
+                return (
+                  <Link 
+                    key={to} 
+                    to={to} 
+                    className={`sidebar-link ${isActive ? 'is-active' : ''}`} 
+                    aria-current={isActive ? 'page' : undefined}
+                  >
+                    <span className="sidebar-link-icon">
+                      <IconComponent className="w-4 h-4" />
+                    </span>
+                    <span>{label}</span>
+                    {isActive && <span className="sidebar-active-mark" />}
+                  </Link>
+                );
+              })}
+            </nav>
+
+            <div className="sidebar-bottom">
+              <div className="sidebar-section-label">Account & Tools</div>
+              <Link to="/search" className={`sidebar-link ${location.pathname === '/search' ? 'is-active' : ''}`}>
+                <span className="sidebar-link-icon"><Search className="w-4 h-4" /></span>
+                <span>Global Search</span>
+              </Link>
+              <Link to="/settings" className={`sidebar-link ${location.pathname === '/settings' ? 'is-active' : ''}`}>
+                <span className="sidebar-link-icon"><Settings className="w-4 h-4" /></span>
+                <span>Settings</span>
+              </Link>
+              <button type="button" className="sidebar-link theme-switch" onClick={toggleTheme}>
+                <span className="sidebar-link-icon">
+                  {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-400" />}
+                </span>
+                <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+              </button>
+
+              <div className="sidebar-user">
+                <span className="sidebar-avatar">
+                  {user.photoUrl ? (
+                    <img src={user.photoUrl} alt="" />
+                  ) : (
+                    (user.name || user.email || 'U').trim().slice(0, 1).toUpperCase()
+                  )}
+                </span>
+                <span className="sidebar-user-copy">
+                  <strong>{user.name || 'User Account'}</strong>
+                  <small>{entity || roleLabel(user.role)}</small>
+                </span>
+                <button 
+                  type="button" 
+                  onClick={handleLogout} 
+                  className="sidebar-logout" 
+                  title="Log out" 
+                  aria-label="Log out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="sidebar-auth-links p-4 space-y-3">
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Bridging academia and industry for skill mapping, internships & placements.
+            </p>
+            <Link 
+              to="/login" 
+              className="flex items-center justify-between p-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs transition"
+            >
+              <span>Sign In</span>
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+            <Link 
+              to="/register" 
+              className="flex items-center justify-between p-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs border border-slate-700 transition"
+            >
+              <span>Create Account</span>
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+        )}
+
+        <div className="sidebar-footer">
+          <span className="sidebar-footer-dot" />
+          <span>PFAC Platform v2.4</span>
+        </div>
       </aside>
     </>
   );

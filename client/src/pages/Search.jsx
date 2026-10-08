@@ -1,5 +1,18 @@
 import React, { useState } from 'react';
 import api from '../services/api';
+import {
+  Search as SearchIcon,
+  GraduationCap,
+  Building2,
+  School,
+  Briefcase,
+  Filter,
+  Sparkles,
+  Award,
+  CheckCircle2,
+  DollarSign,
+  UserCheck
+} from 'lucide-react';
 
 export default function Search() {
   const [activeTab, setActiveTab] = useState('student'); // 'student' | 'company' | 'college'
@@ -45,84 +58,94 @@ export default function Search() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Unified Search & Intelligence Directory</h1>
-        <p className="text-sm text-slate-500">Cross-portal search across internships, jobs, candidates, colleges, and training tracks</p>
+      {/* Header */}
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold font-display text-slate-900 dark:text-white flex items-center gap-2">
+            <SearchIcon className="w-6 h-6 text-blue-600" />
+            Unified Portal Search & Intelligence Directory
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            Cross-portal search across internships, jobs, candidates, partner colleges, and placement drives
+          </p>
+        </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex border-b border-slate-200">
-        <button
-          onClick={() => { setActiveTab('student'); setResults(null); }}
-          className={`py-2 px-4 text-sm font-semibold border-b-2 transition ${
-            activeTab === 'student' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          🎓 Opportunities & Courses
-        </button>
-        <button
-          onClick={() => { setActiveTab('company'); setResults(null); }}
-          className={`py-2 px-4 text-sm font-semibold border-b-2 transition ${
-            activeTab === 'company' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          🏢 Candidate Talent Directory
-        </button>
-        <button
-          onClick={() => { setActiveTab('college'); setResults(null); }}
-          className={`py-2 px-4 text-sm font-semibold border-b-2 transition ${
-            activeTab === 'college' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'
-          }`}
-        >
-          🏛️ Placement & Corporate Index
-        </button>
+      {/* Styled Tabs */}
+      <div className="bg-white dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm inline-flex flex-wrap gap-1">
+        {[
+          { id: 'student', label: 'Opportunities & Courses', icon: GraduationCap },
+          { id: 'company', label: 'Candidate Talent Directory', icon: UserCheck },
+          { id: 'college', label: 'Placement & Corporate Index', icon: School },
+        ].map((tab) => {
+          const IconComp = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => { setActiveTab(tab.id); setResults(null); }}
+              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition ${
+                isActive
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              <IconComp className="w-4 h-4" />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Search Input and Filters */}
-      <form onSubmit={handleSearch} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={
-              activeTab === 'student'
-                ? "Search by company name, job role, internship, or skill..."
-                : activeTab === 'company'
-                ? "Search candidate by name, USN, or keyword..."
-                : "Search by company, student USN, or placement records..."
-            }
-            className="flex-1 px-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
-          />
+      {/* Search Input Box */}
+      <form onSubmit={handleSearch} className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <SearchIcon className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={
+                activeTab === 'student'
+                  ? "Search by company name, job role, internship, or skill..."
+                  : activeTab === 'company'
+                  ? "Search candidates by name, USN, or keyword..."
+                  : "Search by company, student USN, or placement records..."
+              }
+              className="pl-10 pr-4 py-3 w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-slate-900 transition"
+            />
+          </div>
           <button
             type="submit"
             disabled={loading}
-            className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-lg font-medium text-sm transition"
+            className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl text-xs font-semibold transition shadow-md shadow-blue-600/20 disabled:opacity-50 shrink-0"
           >
-            {loading ? 'Searching...' : 'Search'}
+            <SearchIcon className="w-4 h-4" />
+            <span>{loading ? 'Searching...' : 'Search Directory'}</span>
           </button>
         </div>
 
-        {/* Filters for Company Tab */}
+        {/* Talent Filters */}
         {activeTab === 'company' && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t border-slate-100">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
             <div>
-              <label className="text-xs font-semibold text-slate-500">Min CGPA</label>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Min CGPA</label>
               <input
                 type="number"
                 step="0.1"
                 placeholder="e.g. 7.5"
                 value={talentFilters.minCgpa}
                 onChange={(e) => setTalentFilters({ ...talentFilters, minCgpa: e.target.value })}
-                className="w-full mt-1 px-2.5 py-1.5 text-xs border rounded"
+                className="w-full mt-1.5 px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-500">Department</label>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Department</label>
               <select
                 value={talentFilters.department}
                 onChange={(e) => setTalentFilters({ ...talentFilters, department: e.target.value })}
-                className="w-full mt-1 px-2.5 py-1.5 text-xs border rounded bg-white"
+                className="w-full mt-1.5 px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200"
               >
                 <option value="">All Departments</option>
                 <option value="CSE">CSE</option>
@@ -132,23 +155,23 @@ export default function Search() {
               </select>
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-500">Skill</label>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Skill</label>
               <input
                 type="text"
                 placeholder="e.g. Python, React"
                 value={talentFilters.skill}
                 onChange={(e) => setTalentFilters({ ...talentFilters, skill: e.target.value })}
-                className="w-full mt-1 px-2.5 py-1.5 text-xs border rounded"
+                className="w-full mt-1.5 px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-500">Graduation Year</label>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Graduation Year</label>
               <input
                 type="number"
                 placeholder="e.g. 2027"
                 value={talentFilters.graduationYear}
                 onChange={(e) => setTalentFilters({ ...talentFilters, graduationYear: e.target.value })}
-                className="w-full mt-1 px-2.5 py-1.5 text-xs border rounded"
+                className="w-full mt-1.5 px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
               />
             </div>
           </div>
@@ -158,25 +181,31 @@ export default function Search() {
       {/* Results View */}
       {results && (
         <div className="space-y-6">
-          {/* Active Tab: Student (Jobs, Internships, Companies, Courses) */}
           {activeTab === 'student' && (
             <div className="space-y-6">
               {results.jobs && results.jobs.length > 0 && (
-                <div>
-                  <h3 className="text-base font-bold text-slate-800 mb-3">Matching Full-Time Jobs ({results.jobs.length})</h3>
+                <div className="space-y-3">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white font-display flex items-center gap-2">
+                    <Briefcase className="w-4 h-4 text-blue-600" />
+                    Matching Jobs ({results.jobs.length})
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {results.jobs.map((j) => (
-                      <div key={j.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                      <div key={j.id} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
                         <div className="flex justify-between items-start">
                           <div>
-                            <h4 className="font-semibold text-slate-900">{j.title}</h4>
-                            <p className="text-xs text-slate-500">{j.company} • {j.location}</p>
+                            <h4 className="font-bold text-slate-900 dark:text-white font-display">{j.title}</h4>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{j.company} • {j.location}</p>
                           </div>
-                          <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded">{j.package}</span>
+                          <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                            {j.package}
+                          </span>
                         </div>
-                        <div className="flex flex-wrap gap-1 mt-3">
+                        <div className="flex flex-wrap gap-1.5 mt-3">
                           {j.skills?.map((s) => (
-                            <span key={s} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">{s}</span>
+                            <span key={s} className="text-[11px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2.5 py-0.5 rounded-md">
+                              {s}
+                            </span>
                           ))}
                         </div>
                       </div>
@@ -186,21 +215,28 @@ export default function Search() {
               )}
 
               {results.internships && results.internships.length > 0 && (
-                <div>
-                  <h3 className="text-base font-bold text-slate-800 mb-3">Matching Internships ({results.internships.length})</h3>
+                <div className="space-y-3">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white font-display flex items-center gap-2">
+                    <GraduationCap className="w-4 h-4 text-purple-600" />
+                    Matching Internships ({results.internships.length})
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {results.internships.map((i) => (
-                      <div key={i.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                      <div key={i.id} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
                         <div className="flex justify-between items-start">
                           <div>
-                            <h4 className="font-semibold text-slate-900">{i.title}</h4>
-                            <p className="text-xs text-slate-500">{i.company} • Mode: {i.mode}</p>
+                            <h4 className="font-bold text-slate-900 dark:text-white font-display">{i.title}</h4>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{i.company} • Mode: {i.mode}</p>
                           </div>
-                          <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-1 rounded">{i.stipend}</span>
+                          <span className="text-xs font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 px-2.5 py-1 rounded-lg border border-purple-200 dark:border-purple-800">
+                            {i.stipend}
+                          </span>
                         </div>
-                        <div className="flex flex-wrap gap-1 mt-3">
+                        <div className="flex flex-wrap gap-1.5 mt-3">
                           {i.skills?.map((s) => (
-                            <span key={s} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">{s}</span>
+                            <span key={s} className="text-[11px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2.5 py-0.5 rounded-md">
+                              {s}
+                            </span>
                           ))}
                         </div>
                       </div>
@@ -208,88 +244,40 @@ export default function Search() {
                   </div>
                 </div>
               )}
-
-              {results.companies && results.companies.length > 0 && (
-                <div>
-                  <h3 className="text-base font-bold text-slate-800 mb-3">Matching Companies ({results.companies.length})</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {results.companies.map((c) => (
-                      <div key={c.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                        <h4 className="font-semibold text-slate-900">{c.name}</h4>
-                        <p className="text-xs text-slate-500 mt-0.5">{c.industry} • {c.location}</p>
-                        <span className="inline-block mt-2 text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">
-                          {c.type}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
-          {/* Active Tab: Company (Candidates Array) */}
           {activeTab === 'company' && Array.isArray(results) && (
-            <div>
-              <h3 className="text-base font-bold text-slate-800 mb-3">Matching Candidates ({results.length})</h3>
+            <div className="space-y-3">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white font-display flex items-center gap-2">
+                <UserCheck className="w-4 h-4 text-blue-600" />
+                Matching Candidates ({results.length})
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {results.map((cand) => (
-                  <div key={cand.id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
+                  <div key={cand.id} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-2">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h4 className="font-bold text-slate-900">{cand.name}</h4>
-                        <p className="text-xs text-slate-500">{cand.usn} • {cand.college}</p>
+                        <h4 className="font-bold text-slate-900 dark:text-white font-display">{cand.name}</h4>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{cand.usn} • {cand.college}</p>
                       </div>
-                      <span className="text-xs font-bold bg-blue-50 text-blue-700 px-2 py-1 rounded">CGPA {cand.cgpa}</span>
+                      <span className="text-xs font-bold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 px-2.5 py-1 rounded-lg border border-blue-200 dark:border-blue-800">
+                        CGPA {cand.cgpa}
+                      </span>
                     </div>
-                    <p className="text-xs text-slate-600 font-medium">Dept: {cand.department} | Batch: {cand.graduationYear}</p>
-                    <div className="flex flex-wrap gap-1 pt-1">
+                    <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+                      Dept: {cand.department} | Batch: {cand.graduationYear}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5 pt-1">
                       {cand.skills?.map((s) => (
-                        <span key={s} className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">{s}</span>
+                        <span key={s} className="text-[11px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2.5 py-0.5 rounded-md">
+                          {s}
+                        </span>
                       ))}
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-
-          {/* Active Tab: College (Students, Companies, Opportunities, Records) */}
-          {activeTab === 'college' && (
-            <div className="space-y-6">
-              {results.placementRecords && results.placementRecords.length > 0 && (
-                <div>
-                  <h3 className="text-base font-bold text-slate-800 mb-3">Placement Records ({results.placementRecords.length})</h3>
-                  <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                    <table className="w-full text-left text-sm">
-                      <thead className="bg-slate-50 text-slate-500 text-xs uppercase">
-                        <tr>
-                          <th className="py-2.5 px-4">Student</th>
-                          <th className="py-2.5 px-4">USN</th>
-                          <th className="py-2.5 px-4">Company</th>
-                          <th className="py-2.5 px-4">Role</th>
-                          <th className="py-2.5 px-4">Package</th>
-                          <th className="py-2.5 px-4">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 text-xs">
-                        {results.placementRecords.map((r) => (
-                          <tr key={r.id}>
-                            <td className="py-3 px-4 font-semibold text-slate-800">{r.studentName}</td>
-                            <td className="py-3 px-4 text-slate-500">{r.usn}</td>
-                            <td className="py-3 px-4 text-slate-700">{r.company}</td>
-                            <td className="py-3 px-4 text-slate-600">{r.role}</td>
-                            <td className="py-3 px-4 font-bold text-emerald-600">{r.package}</td>
-                            <td className="py-3 px-4">
-                              <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded font-medium">{r.status}</span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </div>
