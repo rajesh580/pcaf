@@ -65,7 +65,15 @@ router.get('/resume/preview', authenticate, async (req, res) => {
 
     // Handle local file
     if (student.resumeUrl.startsWith('/uploads/')) {
-      const localFilePath = path.join(__dirname, '../..', student.resumeUrl);
+      let localFilePath = path.join(__dirname, '../..', student.resumeUrl);
+      if (!fs.existsSync(localFilePath) && fs.existsSync(resumesDir)) {
+        // Fallback: search for any existing local upload matching this user ID
+        const matchingFiles = fs.readdirSync(resumesDir).filter((file) => file.startsWith(`resume_${req.user.id}_`));
+        if (matchingFiles.length > 0) {
+          localFilePath = path.join(resumesDir, matchingFiles[matchingFiles.length - 1]);
+        }
+      }
+
       if (fs.existsSync(localFilePath)) {
         const ext = path.extname(localFilePath).toLowerCase();
         const contentType = ext === '.pdf' ? 'application/pdf' : 'application/octet-stream';
@@ -110,7 +118,14 @@ router.get('/resume/download', authenticate, async (req, res) => {
 
     // Local file handling
     if (student.resumeUrl.startsWith('/uploads/')) {
-      const localFilePath = path.join(__dirname, '../..', student.resumeUrl);
+      let localFilePath = path.join(__dirname, '../..', student.resumeUrl);
+      if (!fs.existsSync(localFilePath) && fs.existsSync(resumesDir)) {
+        const matchingFiles = fs.readdirSync(resumesDir).filter((file) => file.startsWith(`resume_${req.user.id}_`));
+        if (matchingFiles.length > 0) {
+          localFilePath = path.join(resumesDir, matchingFiles[matchingFiles.length - 1]);
+        }
+      }
+
       if (fs.existsSync(localFilePath)) {
         const ext = path.extname(localFilePath).toLowerCase();
         const contentType = ext === '.pdf' ? 'application/pdf' : 'application/octet-stream';
@@ -174,41 +189,52 @@ router.post(
       });
       if (!previousStudent) return res.status(404).json({ error: 'Student profile not found.' });
 
-      if (!process.env.CLOUDINARY_CLOUD_NAME && !process.env.CLOUDINARY_URL) {
-        return res.status(503).json({ error: 'Cloudinary is not configured. Resume uploads are unavailable until cloud storage is connected.' });
-      }
-      const result = await uploadToCloudinary(req.file.buffer, {
-        folder: 'pfac/resumes',
-        resource_type: 'raw',
-        public_id: filename.replace(/\.[^.]+$/, ''),
-        type: 'upload',
-      });
-      if (!result?.secure_url) return res.status(502).json({ error: 'Cloudinary did not return a secure resume URL.' });
+      // 1. ALWAYS save to local uploads directory first
+      fs.mkdirSync(resumesDir, { recursive: true });
+      const localFilePath = path.join(resumesDir, filename);
+      fs.writeFileSync(localFilePath, req.file.buffer);
+      const relativeLocalUrl = `/uploads/resumes/${filename}`;
 
-      try {
-        await prisma.student.update({ where: { userId: req.user.id }, data: { resumeUrl: result.secure_url } });
-      } catch (error) {
-        cloudinary.uploader.destroy(result.public_id, { resource_type: 'raw', type: 'upload' }).catch((cleanupError) => console.warn('Unlinked Cloudinary resume cleanup failed:', cleanupError.message));
-        throw error;
+      let finalResumeUrl = relativeLocalUrl;
+
+      // 2. If Cloudinary IS configured, also upload to Cloudinary and store Cloudinary URL
+      const isCloudinaryConfigured = Boolean(
+        process.env.CLOUDINARY_URL || (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET)
+      );
+
+      if (isCloudinaryConfigured) {
+        try {
+          const result = await uploadToCloudinary(req.file.buffer, {
+            folder: 'pfac/resumes',
+            resource_type: 'raw',
+            public_id: filename.replace(/\.[^.]+$/, ''),
+            type: 'upload',
+          });
+          if (result?.secure_url) {
+            finalResumeUrl = result.secure_url;
+          }
+        } catch (cloudErr) {
+          console.warn('Cloudinary upload warning (falling back to local file storage):', cloudErr.message);
+        }
       }
 
-      // The student record has one resumeUrl field, so the new value replaces
-      // the old database reference. Remove an older portal file after commit.
+      await prisma.student.update({ where: { userId: req.user.id }, data: { resumeUrl: finalResumeUrl } });
+
+      // Clean up previous file if needed
       const oldResumeUrl = previousStudent.resumeUrl;
       if (oldResumeUrl?.startsWith('/uploads/resumes/')) {
-        const uploadsRoot = path.resolve(resumesDir);
-        const oldFilePath = path.resolve(uploadsRoot, path.basename(oldResumeUrl));
-        if (oldFilePath.startsWith(`${uploadsRoot}${path.sep}`) && fs.existsSync(oldFilePath)) {
+        const oldFilePath = path.resolve(resumesDir, path.basename(oldResumeUrl));
+        if (fs.existsSync(oldFilePath) && oldFilePath !== localFilePath) {
           try { fs.unlinkSync(oldFilePath); }
           catch (error) { console.warn('Previous local resume cleanup failed:', error.message); }
         }
-      } else {
+      } else if (oldResumeUrl) {
         removeCachedResume(oldResumeUrl);
       }
 
       return res.json({
-        message: 'Resume uploaded to Cloudinary and linked to your profile.',
-        fileUrl: result.secure_url,
+        message: 'Resume uploaded successfully and linked to your profile!',
+        fileUrl: finalResumeUrl,
       });
     } catch (error) {
       console.error('Resume upload error:', error);

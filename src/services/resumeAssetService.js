@@ -88,7 +88,17 @@ async function cacheCloudinaryResume(assetUrl) {
     return { filePath: currentPath, extension: currentExtension, contentType: currentExtension === '.pdf' ? 'application/pdf' : 'application/octet-stream' };
   }
 
-  const downloaded = await requestAsset(signedDownloadUrl(assetUrl));
+  let downloaded;
+  try {
+    downloaded = await requestAsset(signedDownloadUrl(assetUrl));
+  } catch (signedErr) {
+    try {
+      downloaded = await requestAsset(assetUrl);
+    } catch (fallbackErr) {
+      throw new Error('Cloudinary asset access error: ' + (fallbackErr.message || signedErr.message));
+    }
+  }
+
   assertResumeContent(downloaded.buffer, downloaded.contentType);
   const extension = extensionFor(assetUrl, downloaded.contentType);
   const filePath = path.join(resumesDir, `${key}${extension}`);

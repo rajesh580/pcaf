@@ -6,8 +6,8 @@ function generateStandardizedResume(profile) {
   const p = profile || {};
   const academic = p.academicProfile || {};
   const skills = p.skills || [];
-  const certs = academic.certifications || [];
-  const projects = academic.academicProjects || [];
+  const certs = p.certifications || academic.certifications || [];
+  const projects = p.projects || academic.academicProjects || [];
   const internships = p.internships || [];
   const achievements = p.achievements || [];
 

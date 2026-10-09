@@ -4,6 +4,7 @@ import MainLayout from './layouts/MainLayout';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
 import VerifyEmail from './pages/auth/VerifyEmail';
 import Search from './pages/Search';
 import Settings from './pages/Settings';
@@ -21,6 +22,7 @@ import StudentRecommendations from './pages/student/Recommendations';
 import SkillMatch from './pages/student/SkillMatch';
 import StandardizedResume from './pages/student/StandardizedResume';
 import StudentTraining from './pages/student/Training';
+import StudentExamPage from './pages/student/ExamPage';
 import StudentCareerReport from './pages/student/CareerReport';
 import StudentPpoTracker from './pages/student/PpoTracker';
 
@@ -85,6 +87,7 @@ export default function App() {
           <Route path="register" element={<Register />} />
           <Route path="verify-email" element={<VerifyEmail />} />
           <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="reset-password" element={<ResetPassword />} />
           <Route path="search" element={<Search />} />
           <Route path="settings" element={<Settings />} />
 
@@ -100,6 +103,7 @@ export default function App() {
           <Route path="student/recommendations" element={<StudentRecommendations />} />
           <Route path="student/skill-match" element={<SkillMatch />} />
           <Route path="student/training" element={<StudentTraining />} />
+          <Route path="student/training/:programId/exam" element={<StudentExamPage />} />
           <Route path="student/report" element={<StudentCareerReport />} />
           <Route path="student/ppo-tracker" element={<StudentPpoTracker />} />
 

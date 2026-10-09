@@ -345,32 +345,46 @@ router.post('/logout', authenticate, (req, res) => {
  * 5. Forgot Password
  */
 router.post('/forgot-password', async (req, res) => {
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ error: 'Email is required' });
-
-  const user = await prisma.user.findUnique({
-    where: { email: email.toLowerCase() },
-  });
-
-  if (!user) {
-    return res.json({ message: 'If this email exists in our records, a reset link has been dispatched.' });
-  }
-
-  const resetToken = jwt.sign(
-    { userId: user.id, email: user.email, purpose: 'password_reset' },
-    process.env.JWT_SECRET || 'super_secret_jwt_key_pfac_portal_2026_dev_secure',
-    { expiresIn: '1h' }
-  );
-
-  passwordResetTokens.set(resetToken, { email: user.email, expiresAt: Date.now() + 3600000 });
-
   try {
-    await sendPasswordResetEmail(user.email, resetToken);
-  } catch (err) {
-    console.warn('Password reset mail error:', err.message);
-  }
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email is required' });
 
-  return res.json({ message: 'If this email exists in our records, a reset link has been dispatched.' });
+    const user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    });
+
+    if (!user) {
+      return res.json({ message: 'If this email exists in our records, a reset link has been dispatched.' });
+    }
+
+    const resetToken = jwt.sign(
+      { userId: user.id, email: user.email, purpose: 'password_reset' },
+      process.env.JWT_SECRET || 'super_secret_jwt_key_pfac_portal_2026_dev_secure',
+      { expiresIn: '1h' }
+    );
+
+    passwordResetTokens.set(resetToken, { email: user.email, expiresAt: Date.now() + 3600000 });
+
+    let emailSent = false;
+    try {
+      await sendPasswordResetEmail(user.email, resetToken);
+      emailSent = true;
+    } catch (err) {
+      console.warn('Password reset mail error:', err.message);
+    }
+
+    const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+
+    return res.json({
+      message: 'If this email exists in our records, a reset link has been dispatched.',
+      resetUrl,
+      resetToken,
+      emailSent
+    });
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    return res.status(500).json({ error: 'Server error processing password reset request.' });
+  }
 });
 
 /**
@@ -380,6 +394,10 @@ router.post('/reset-password', async (req, res) => {
   const { token, newPassword } = req.body;
   if (!token || !newPassword) {
     return res.status(400).json({ error: 'Reset token and new password are required' });
+  }
+
+  if (newPassword.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters long' });
   }
 
   try {
@@ -401,7 +419,7 @@ router.post('/reset-password', async (req, res) => {
 
     passwordResetTokens.delete(token);
 
-    return res.json({ message: 'Password updated successfully in database. You can now log in.' });
+    return res.json({ message: 'Password updated successfully. You can now log in with your new password.' });
   } catch (error) {
     return res.status(400).json({ error: 'Reset link is invalid or has expired' });
   }
