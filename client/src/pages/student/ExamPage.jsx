@@ -216,6 +216,9 @@ const DEFAULT_QUESTIONS = [
 
 function getQuestions(program) {
   if (!program) return DEFAULT_QUESTIONS;
+  if (Array.isArray(program.quizQuestions) && program.quizQuestions.length > 0) {
+    return program.quizQuestions;
+  }
   if (QUESTION_BANK[program.domain]) return QUESTION_BANK[program.domain];
   const key = Object.keys(QUESTION_BANK).find((k) =>
     program.domain.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(program.domain.toLowerCase())
@@ -275,21 +278,6 @@ export default function StudentExamPage() {
       await loadData();
     } catch (err) {
       setError(err.response?.data?.error || 'Could not request exam clearance.');
-    } finally {
-      setActionBusy(false);
-    }
-  };
-
-  const handleGrantClearance = async () => {
-    setActionBusy(true);
-    setMessage('');
-    setError('');
-    try {
-      const res = await trainingService.approvePermission(programId);
-      setMessage(res.message);
-      await loadData();
-    } catch (err) {
-      setError(err.response?.data?.error || 'Could not grant exam permission.');
     } finally {
       setActionBusy(false);
     }
@@ -378,8 +366,8 @@ export default function StudentExamPage() {
     );
   }
 
-  const isApproved = enrollment?.status === 'APPROVED_FOR_EXAM' || enrollment?.status === 'COMPLETED';
-  const isCompleted = enrollment?.status === 'COMPLETED';
+  const isApproved = enrollment?.status === 'APPROVED_FOR_EXAM' || (enrollment?.status === 'COMPLETED' && Boolean(enrollment?.certificateCode));
+  const isCompleted = enrollment?.status === 'COMPLETED' && Boolean(enrollment?.certificateCode);
   const questions = getQuestions(program);
 
   return (
@@ -511,16 +499,7 @@ export default function StudentExamPage() {
                 className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition shadow-sm disabled:opacity-50 flex items-center gap-2"
               >
                 <Lock className="w-4 h-4" />
-                <span>{enrollment?.status === 'AWAITING_APPROVAL' ? 'Clearance Requested' : 'Request Exam Clearance'}</span>
-              </button>
-
-              <button
-                disabled={actionBusy}
-                onClick={handleGrantClearance}
-                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shadow-sm disabled:opacity-50 flex items-center gap-2"
-              >
-                <ShieldCheck className="w-4 h-4" />
-                <span>Grant Clearance (Provider / Dev Override)</span>
+                <span>{enrollment?.status === 'AWAITING_APPROVAL' ? 'Clearance Requested — Pending Instructor Review' : 'Request Exam Clearance'}</span>
               </button>
             </div>
           </div>

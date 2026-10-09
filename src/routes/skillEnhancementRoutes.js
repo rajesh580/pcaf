@@ -1,7 +1,6 @@
 const express = require('express');
 const { authenticate, checkPermission } = require('../middleware/auth');
 const prisma = require('../prisma');
-const { ENHANCEMENT_PROGRAMS_CATALOG } = require('../config/enhancementCatalog');
 
 const router = express.Router();
 const levels = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT'];
@@ -9,8 +8,6 @@ const modes = ['ONLINE', 'OFFLINE', 'HYBRID'];
 const mapProgram = (program) => ({ ...program, skillsCovered: program.skillsCovered || [] });
 
 async function getProgram(id) {
-  const catalogProgram = ENHANCEMENT_PROGRAMS_CATALOG.find((item) => item.id === id);
-  if (catalogProgram) return catalogProgram;
   const saved = await prisma.trainingProgram.findUnique({ where: { id } });
   return saved ? mapProgram(saved) : null;
 }
@@ -19,7 +16,9 @@ router.get('/', async (req, res) => {
   try {
     const { domain, mode, search } = req.query;
     const saved = await prisma.trainingProgram.findMany({ orderBy: { createdAt: 'desc' } });
-    let programs = [...ENHANCEMENT_PROGRAMS_CATALOG, ...saved.map(mapProgram)];
+    
+    let programs = saved.map(mapProgram);
+
     if (domain) programs = programs.filter((p) => p.domain.toLowerCase().includes(String(domain).toLowerCase()));
     if (mode) programs = programs.filter((p) => p.mode.toUpperCase() === String(mode).toUpperCase());
     if (search) {
@@ -34,7 +33,7 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/publish', authenticate, checkPermission('SKILL_PROGRAM_PUBLISH'), async (req, res) => {
-  const { title, domain, skillsCovered = [], mode = 'ONLINE', format, durationWeeks = 4, assessmentType } = req.body;
+  const { title, domain, skillsCovered = [], mode = 'ONLINE', format, durationWeeks = 4, assessmentType, assignmentDetails, testInstructions } = req.body;
   const duration = Number(durationWeeks);
   if (typeof title !== 'string' || !title.trim() || typeof domain !== 'string' || !domain.trim() || !Array.isArray(skillsCovered) || !skillsCovered.length || !skillsCovered.every((skill) => typeof skill === 'string' && skill.trim())) return res.status(400).json({ error: 'Title, domain, and a list of skillsCovered are required.' });
   if (!modes.includes(mode) || !Number.isInteger(duration) || duration < 1 || duration > 104) return res.status(400).json({ error: 'Choose a valid mode and a duration from 1 to 104 weeks.' });
@@ -43,19 +42,102 @@ router.post('/publish', authenticate, checkPermission('SKILL_PROGRAM_PUBLISH'), 
       title: title.trim(), domain: domain.trim(), skillsCovered: [...new Set(skillsCovered.map((skill) => skill.trim()))], mode,
       format: typeof format === 'string' && format.trim() ? format.trim() : 'Live sessions + hands-on projects',
       durationWeeks: duration, provider: req.user.name || req.user.email, providerUserId: req.user.id,
-      assessmentType: typeof assessmentType === 'string' && assessmentType.trim() ? assessmentType.trim() : 'Assessment + project submission'
+      assessmentType: typeof assessmentType === 'string' && assessmentType.trim() ? assessmentType.trim() : 'Assessment + project submission',
+      assignmentDetails: typeof assignmentDetails === 'string' && assignmentDetails.trim() ? assignmentDetails.trim() : null,
+      testInstructions: typeof testInstructions === 'string' && testInstructions.trim() ? testInstructions.trim() : null
     } });
-    res.status(201).json({ message: 'Program published successfully.', program });
+    res.status(201).json({ message: 'Program published successfully with assignments & test instructions.', program });
   } catch (error) {
     console.error('Training publication failed:', error);
     res.status(500).json({ error: 'Could not publish this program.' });
   }
 });
 
+router.put('/:id/update-assignments', authenticate, checkPermission('SKILL_PROGRAM_PUBLISH'), async (req, res) => {
+  const { assignmentDetails, testInstructions } = req.body;
+  try {
+    const program = await prisma.trainingProgram.findFirst({
+      where: { id: req.params.id, providerUserId: req.user.id }
+    });
+    if (!program) return res.status(404).json({ error: 'Program not found or access denied.' });
+
+    const updated = await prisma.trainingProgram.update({
+      where: { id: program.id },
+      data: {
+        assignmentDetails: typeof assignmentDetails === 'string' ? assignmentDetails.trim() : program.assignmentDetails,
+        testInstructions: typeof testInstructions === 'string' ? testInstructions.trim() : program.testInstructions
+      }
+    });
+
+    res.json({ message: 'Assignments and test instructions updated successfully.', program: updated });
+  } catch (error) {
+    console.error('Assignment update failed:', error);
+    res.status(500).json({ error: 'Could not update assignments.' });
+  }
+});
+
+router.put('/:id/save-quiz-questions', authenticate, checkPermission('SKILL_PROGRAM_PUBLISH'), async (req, res) => {
+  const { quizQuestions } = req.body;
+  if (!Array.isArray(quizQuestions)) return res.status(400).json({ error: 'quizQuestions must be an array of questions.' });
+  try {
+    const program = await prisma.trainingProgram.findFirst({
+      where: { id: req.params.id, providerUserId: req.user.id }
+    });
+    if (!program) return res.status(404).json({ error: 'Program not found or access denied.' });
+
+    const updated = await prisma.trainingProgram.update({
+      where: { id: program.id },
+      data: { quizQuestions }
+    });
+
+    res.json({ message: `Saved ${quizQuestions.length} Google-Form style quiz questions for ${program.title}.`, program: updated });
+  } catch (error) {
+    console.error('Quiz save failed:', error);
+    res.status(500).json({ error: 'Could not save quiz questions.' });
+  }
+});
+
+router.post('/:id/assign-student-task', authenticate, checkPermission('SKILL_PROGRAM_PUBLISH'), async (req, res) => {
+  const { studentUserId, customAssignmentTitle, customAssignmentDetails, customAssignmentDeadline } = req.body;
+  if (!studentUserId || !customAssignmentTitle) return res.status(400).json({ error: 'studentUserId and customAssignmentTitle are required.' });
+  try {
+    const program = await prisma.trainingProgram.findFirst({
+      where: { id: req.params.id, providerUserId: req.user.id }
+    });
+    if (!program) return res.status(404).json({ error: 'Program not found or access denied.' });
+
+    const enrollment = await prisma.trainingEnrollment.findUnique({
+      where: { userId_programId: { userId: studentUserId, programId: program.id } }
+    });
+    if (!enrollment) return res.status(404).json({ error: 'Student enrollment not found.' });
+
+    const updated = await prisma.trainingEnrollment.update({
+      where: { id: enrollment.id },
+      data: {
+        customAssignmentTitle: customAssignmentTitle.trim(),
+        customAssignmentDetails: typeof customAssignmentDetails === 'string' ? customAssignmentDetails.trim() : null,
+        customAssignmentDeadline: customAssignmentDeadline ? new Date(customAssignmentDeadline) : null
+      }
+    });
+
+    res.json({ message: `Individual assignment "${customAssignmentTitle}" assigned to student successfully.`, enrollment: updated });
+  } catch (error) {
+    console.error('Assign student task failed:', error);
+    res.status(500).json({ error: 'Could not assign task to student.' });
+  }
+});
+
 router.get('/provider/enrollments', authenticate, checkPermission('SKILL_PROGRAM_PUBLISH'), async (req, res) => {
   try {
-    const programs = await prisma.trainingProgram.findMany({ where: { providerUserId: req.user.id }, select: { id: true, title: true } });
-    const enrollments = programs.length ? await prisma.trainingEnrollment.findMany({ where: { programId: { in: programs.map((program) => program.id) } }, include: { user: { select: { id: true, name: true, email: true } } }, orderBy: { enrolledAt: 'desc' } }) : [];
+    const programs = await prisma.trainingProgram.findMany({ where: { providerUserId: req.user.id } });
+    const programIds = programs.map((program) => program.id);
+    const enrollments = programIds.length ? await prisma.trainingEnrollment.findMany({
+      where: { programId: { in: programIds } },
+      include: {
+        user: { select: { id: true, name: true, email: true } }
+      },
+      orderBy: { enrolledAt: 'desc' }
+    }) : [];
     res.json({ programs, enrollments });
   } catch (error) {
     console.error('Provider enrollment lookup failed:', error);
@@ -68,7 +150,7 @@ router.post('/recommend-by-gaps', authenticate, (req, res) => {
   if (!Array.isArray(skillGaps)) return res.status(400).json({ error: 'skillGaps must be a list.' });
   const normalizedGaps = skillGaps.map((gap) => typeof gap === 'string' ? gap : gap?.name).filter((name) => typeof name === 'string').map((name) => name.trim().toLowerCase());
   prisma.trainingProgram.findMany().then((saved) => {
-    const programs = [...ENHANCEMENT_PROGRAMS_CATALOG, ...saved.map(mapProgram)].filter((program) => program.skillsCovered.some((skill) => normalizedGaps.includes(skill.toLowerCase())));
+    const programs = saved.map(mapProgram).filter((program) => program.skillsCovered.some((skill) => normalizedGaps.includes(skill.toLowerCase())));
     res.json({ identifiedGapsCount: normalizedGaps.length, recommendedCount: programs.length, programs });
   }).catch((error) => {
     console.error('Training recommendations failed:', error);
@@ -144,14 +226,20 @@ router.post('/:id/request-approval', authenticate, async (req, res) => {
   }
 });
 
-router.post('/:id/approve-permission', authenticate, async (req, res) => {
+router.post('/:id/approve-permission', authenticate, checkPermission('SKILL_PROGRAM_PUBLISH'), async (req, res) => {
   try {
     const program = await getProgram(req.params.id);
     if (!program) return res.status(404).json({ error: 'Program not found.' });
     
-    const targetUserId = req.body.studentUserId || req.user.id;
+    if (program.providerUserId && program.providerUserId !== req.user.id && !['SUPER_ADMIN', 'PLATFORM_ADMIN'].includes(req.user.role)) {
+      return res.status(403).json({ error: 'Only the Skill Provider who published this program can grant exam clearance.' });
+    }
+
+    const { studentUserId } = req.body;
+    if (!studentUserId) return res.status(400).json({ error: 'studentUserId is required to grant clearance.' });
+
     const enrollment = await prisma.trainingEnrollment.findUnique({
-      where: { userId_programId: { userId: targetUserId, programId: program.id } }
+      where: { userId_programId: { userId: studentUserId, programId: program.id } }
     });
     if (!enrollment) return res.status(404).json({ error: 'Student enrollment record not found.' });
 
@@ -168,12 +256,12 @@ router.post('/:id/approve-permission', authenticate, async (req, res) => {
 });
 
 router.post('/:id/complete', authenticate, async (req, res) => {
-  if (req.user.role !== 'STUDENT') return res.status(403).json({ error: 'Only student accounts can complete training.' });
+  if (req.user.role !== 'STUDENT') return res.status(403).json({ error: 'Only student accounts can submit training assessment.' });
   try {
     const program = await getProgram(req.params.id);
     if (!program) return res.status(404).json({ error: 'Program not found.' });
     
-    const { score: scoreInput, projectTitle, projectUrl, projectDescription } = req.body;
+    const { score: scoreInput, projectTitle, projectUrl } = req.body;
     const score = Number(scoreInput);
 
     if (!Number.isInteger(score) || score < 0 || score > 100) {
@@ -188,104 +276,158 @@ router.post('/:id/complete', authenticate, async (req, res) => {
     }
 
     const student = await prisma.student.findUnique({
-      where: { userId: req.user.id },
-      include: { skills: { include: { skill: true } } }
+      where: { userId: req.user.id }
     });
-    if (!student) return res.status(404).json({ error: 'Complete your student profile before finishing training.' });
+    if (!student) return res.status(404).json({ error: 'Complete your student profile before submitting.' });
 
     const enrollment = await prisma.trainingEnrollment.findUnique({
       where: { userId_programId: { userId: req.user.id, programId: program.id } }
     });
     if (!enrollment) return res.status(409).json({ error: 'Enroll in this program before completing it.' });
-    if (enrollment.status === 'COMPLETED') return res.status(409).json({ error: 'This program is already completed.' });
 
-    // Check permission / approval status
-    if (enrollment.status !== 'APPROVED_FOR_EXAM') {
-      // Auto-grant approval for catalog demo programs if not yet explicitly approved
-      await prisma.trainingEnrollment.update({
-        where: { id: enrollment.id },
-        data: { status: 'APPROVED_FOR_EXAM' }
-      });
+    // Enforce permission / clearance status
+    if (enrollment.status !== 'APPROVED_FOR_EXAM' && enrollment.status !== 'IN_PROGRESS' && enrollment.status !== 'AWAITING_APPROVAL') {
+      return res.status(403).json({ error: 'Exam clearance has not been granted by your Skill Provider yet. Contact your instructor.' });
     }
 
-    const providerPrefix = program.provider
-      ? program.provider.split(' ').map((w) => w[0]).join('').toUpperCase()
-      : 'PROVIDER';
-    const certificateCode = `${providerPrefix}-CERT-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-    const certificateUrl = `https://credentials.pfac-portal.edu/certificates/${providerPrefix.toLowerCase()}/${certificateCode}`;
+    // Record student test score and project deliverable awaiting Skill Provider evaluation & certificate issuance
+    const updatedEnrollment = await prisma.trainingEnrollment.update({
+      where: { id: enrollment.id },
+      data: {
+        testMarks: score,
+        projectTitle: projectTitle.trim(),
+        projectUrl: projectUrl.trim(),
+        status: 'AWAITING_APPROVAL'
+      }
+    });
+
+    res.json({
+      message: `Exam (${score}%) and project deliverables submitted successfully! Your Skill Provider (${program.provider}) will evaluate your work, assign final marks, and issue your official certificate.`,
+      enrollment: updatedEnrollment,
+      project: { title: projectTitle, url: projectUrl }
+    });
+  } catch (error) {
+    console.error('Training submission failed:', error);
+    res.status(500).json({ error: 'Could not submit training assessment.' });
+  }
+});
+
+router.post('/:id/submit-assignment', authenticate, async (req, res) => {
+  if (req.user.role !== 'STUDENT') return res.status(403).json({ error: 'Only student accounts can submit assignments.' });
+  try {
+    const program = await getProgram(req.params.id);
+    if (!program) return res.status(404).json({ error: 'Program not found.' });
+
+    const { assignmentSubmission, projectTitle, projectUrl } = req.body;
+    const enrollment = await prisma.trainingEnrollment.findUnique({
+      where: { userId_programId: { userId: req.user.id, programId: program.id } }
+    });
+    if (!enrollment) return res.status(404).json({ error: 'Enroll in this program before submitting.' });
+
+    const updated = await prisma.trainingEnrollment.update({
+      where: { id: enrollment.id },
+      data: {
+        assignmentSubmission: typeof assignmentSubmission === 'string' ? assignmentSubmission.trim() : enrollment.assignmentSubmission,
+        projectTitle: typeof projectTitle === 'string' ? projectTitle.trim() : enrollment.projectTitle,
+        projectUrl: typeof projectUrl === 'string' ? projectUrl.trim() : enrollment.projectUrl,
+        status: enrollment.status === 'IN_PROGRESS' ? 'AWAITING_APPROVAL' : enrollment.status
+      }
+    });
+
+    res.json({ message: 'Assignment and project submission received. Sent to Skill Provider for grading.', enrollment: updated });
+  } catch (error) {
+    console.error('Assignment submission failed:', error);
+    res.status(500).json({ error: 'Could not submit assignment.' });
+  }
+});
+
+router.post('/:id/grade-student', authenticate, checkPermission('SKILL_PROGRAM_PUBLISH'), async (req, res) => {
+  try {
+    const program = await getProgram(req.params.id);
+    if (!program) return res.status(404).json({ error: 'Program not found.' });
+
+    const { studentUserId, testMarks, assignmentMarks, projectMarks, feedback, customCertificateCode } = req.body;
+    if (!studentUserId) return res.status(400).json({ error: 'studentUserId is required.' });
+
+    const enrollment = await prisma.trainingEnrollment.findUnique({
+      where: { userId_programId: { userId: studentUserId, programId: program.id } }
+    });
+    if (!enrollment) return res.status(404).json({ error: 'Student enrollment record not found.' });
+
+    const tMarks = testMarks !== undefined && testMarks !== null && testMarks !== '' ? Number(testMarks) : enrollment.testMarks;
+    const aMarks = assignmentMarks !== undefined && assignmentMarks !== null && assignmentMarks !== '' ? Number(assignmentMarks) : enrollment.assignmentMarks;
+    const pMarks = projectMarks !== undefined && projectMarks !== null && projectMarks !== '' ? Number(projectMarks) : enrollment.projectMarks;
+
+    const markComponents = [tMarks, aMarks, pMarks].filter((m) => typeof m === 'number' && !isNaN(m));
+    const calculatedScore = markComponents.length
+      ? Math.round(markComponents.reduce((acc, m) => acc + m, 0) / markComponents.length)
+      : (req.body.score ? Number(req.body.score) : (enrollment.score || 85));
+
+    const providerPrefix = program.provider ? program.provider.split(' ').map((w) => w[0]).join('').toUpperCase() : 'PROVIDER';
+    const certCode = customCertificateCode || enrollment.certificateCode || `${providerPrefix}-CERT-${Date.now().toString(36).toUpperCase()}`;
+    const certUrl = `https://credentials.pfac-portal.edu/certificates/${providerPrefix.toLowerCase()}/${certCode}`;
     const completedAt = new Date();
 
-    const saved = await prisma.$transaction(async (tx) => {
-      const completion = await tx.trainingEnrollment.updateMany({
-        where: { id: enrollment.id, status: { in: ['APPROVED_FOR_EXAM', 'IN_PROGRESS', 'AWAITING_APPROVAL'] } },
-        data: { status: 'COMPLETED', score, certificateCode, completedAt }
-      });
-      if (completion.count !== 1) throw new Error('TRAINING_ALREADY_COMPLETED');
+    const updated = await prisma.trainingEnrollment.update({
+      where: { id: enrollment.id },
+      data: {
+        status: 'COMPLETED',
+        testMarks: tMarks,
+        assignmentMarks: aMarks,
+        projectMarks: pMarks,
+        score: calculatedScore,
+        feedback: typeof feedback === 'string' ? feedback.trim() : enrollment.feedback,
+        certificateCode: certCode,
+        completedAt
+      }
+    });
 
-      const updatedEnrollment = await tx.trainingEnrollment.findUnique({ where: { id: enrollment.id } });
+    const student = await prisma.student.findUnique({
+      where: { userId: studentUserId },
+      include: { skills: { include: { skill: true } } }
+    });
 
-      // 1. Create Certification with Official Provider Name
-      await tx.certification.create({
+    if (student) {
+      await prisma.certification.create({
         data: {
           studentId: student.id,
-          name: `${program.title} — Official Provider Certificate by ${program.provider} — Credential ID: ${certificateCode} (${score}% Pass Score)`
+          name: `${program.title} — Official Provider Certificate issued by ${program.provider} (${certCode}) [Score: ${calculatedScore}%]`
         }
       });
 
-      // 2. Create Student Project
-      await tx.project.create({
-        data: {
-          studentId: student.id,
-          title: `${projectTitle.trim()} [${projectUrl.trim()}]`
-        }
-      });
+      if (enrollment.projectTitle || enrollment.projectUrl) {
+        await prisma.project.create({
+          data: {
+            studentId: student.id,
+            title: `${enrollment.projectTitle || 'Capstone Project'} [${enrollment.projectUrl || 'Submission'}]`
+          }
+        });
+      }
 
-      // 3. Award Verified Skills
-      const awardedSkills = [];
       for (const name of program.skillsCovered) {
-        const skill = await tx.skill.upsert({
+        const skill = await prisma.skill.upsert({
           where: { name },
           update: {},
           create: { name, category: program.domain }
         });
-        const existing = student.skills.find((item) => item.skillId === skill.id);
-        const rank = (level) => levels.indexOf(level);
-        const level = existing && rank(existing.level) > rank('INTERMEDIATE') ? existing.level : 'INTERMEDIATE';
-        
-        await tx.studentSkill.upsert({
+        await prisma.studentSkill.upsert({
           where: { studentId_skillId: { studentId: student.id, skillId: skill.id } },
-          update: { level, evidenceUrl: `provider:${program.provider};credential:${certificateCode};score:${score};certUrl:${certificateUrl};project:${projectUrl.trim()}` },
-          create: { studentId: student.id, skillId: skill.id, level, evidenceUrl: `provider:${program.provider};credential:${certificateCode};score:${score};certUrl:${certificateUrl};project:${projectUrl.trim()}` }
+          update: { level: 'ADVANCED', evidenceUrl: `provider:${program.provider};credential:${certCode};score:${calculatedScore};certUrl:${certUrl}` },
+          create: { studentId: student.id, skillId: skill.id, level: 'ADVANCED', evidenceUrl: `provider:${program.provider};credential:${certCode};score:${calculatedScore};certUrl:${certUrl}` }
         });
-        awardedSkills.push({ name, level });
       }
-
-      return { enrollment: updatedEnrollment, awardedSkills };
-    });
+    }
 
     res.json({
-      message: `Official Provider Certificate issued by ${program.provider}! Your credential and project have been linked to your profile.`,
-      certificate: {
-        code: certificateCode,
-        program: program.title,
-        provider: program.provider,
-        certificateUrl,
-        score,
-        completedAt
-      },
-      project: { title: projectTitle, url: projectUrl },
-      ...saved
+      message: `Graded successfully! Final Score (${calculatedScore}%) and Official Certificate (${certCode}) issued to student.`,
+      enrollment: updated
     });
   } catch (error) {
-    if (error.message === 'TRAINING_ALREADY_COMPLETED') return res.status(409).json({ error: 'This program is already completed.' });
-    console.error('Training completion failed:', error);
-    res.status(500).json({ error: 'Could not save training completion.' });
+    console.error('Student grading failed:', error);
+    res.status(500).json({ error: 'Could not submit student marks.' });
   }
 });
 
-/**
- * Endpoint for Skill Provider to directly issue custom provider certificate
- */
 router.post('/:id/issue-provider-certificate', authenticate, async (req, res) => {
   try {
     const program = await getProgram(req.params.id);

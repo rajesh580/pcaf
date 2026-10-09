@@ -2,7 +2,6 @@ const express = require('express');
 const { authenticate, checkPermission } = require('../middleware/auth');
 const prisma = require('../prisma');
 const { evaluateSkillMatch } = require('../services/skillMatchingEngine');
-const { ENHANCEMENT_PROGRAMS_CATALOG } = require('../config/enhancementCatalog');
 
 const router = express.Router();
 const percent = (n, d) => d ? `${Math.round((n / d) * 100)}%` : '0%';
@@ -56,7 +55,8 @@ router.get('/student', authenticate, async (req, res) => {
     const profileFields = [profile.name, profile.usn, profile.resumeUrl, profile.githubUrl, profile.linkedinUrl, profile.cgpa > 0, profile.skills.length > 0, profile.projects.length > 0, profile.certifications.length > 0];
     const strongest = ranked[0];
     const skillGaps = strongest?.skillGaps?.length || 0;
-    const programCount = ENHANCEMENT_PROGRAMS_CATALOG.filter((program) => strongest?.skillGaps?.some((gap) => program.skillsCovered.some((skill) => skill.toLowerCase() === gap.name.toLowerCase()))).length;
+    const savedPrograms = await prisma.trainingProgram.findMany();
+    const programCount = savedPrograms.filter((program) => strongest?.skillGaps?.some((gap) => (program.skillsCovered || []).some((skill) => skill.toLowerCase() === gap.name.toLowerCase()))).length;
     res.json({
       welcomeMessage: `Welcome, ${profile.name || req.user.name || 'Student'}`,
       metrics: {

@@ -32,8 +32,8 @@ router.post('/gap-analysis/mine', authenticate, authorize('STUDENT'), async (req
       eligibleDeptCodes: requiredDepartments.map((department) => department.trim().toUpperCase()).filter(Boolean),
       requiredSkills: [...new Set(requiredSkills.map((skill) => skill.trim()))].map((name) => ({ name, minLevel: 'INTERMEDIATE' }))
     };
-    const { ENHANCEMENT_PROGRAMS_CATALOG } = require('../config/enhancementCatalog');
-    const availableTrainings = ENHANCEMENT_PROGRAMS_CATALOG.flatMap((program) => program.skillsCovered.map((skillTarget) => ({ skillTarget, title: program.title, provider: program.provider })));
+    const savedPrograms = await require('../prisma').trainingProgram.findMany();
+    const availableTrainings = savedPrograms.flatMap((program) => (program.skillsCovered || []).map((skillTarget) => ({ skillTarget, title: program.title, provider: program.provider })));
     return res.json(performSkillGapAnalysis(student, opportunity, availableTrainings));
   } catch (error) {
     console.error('Personal skill gap analysis failed:', error);

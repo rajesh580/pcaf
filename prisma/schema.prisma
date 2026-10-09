@@ -247,34 +247,47 @@ model Project {
 }
 
 model TrainingEnrollment {
-  id            String   @id @default(uuid())
-  userId        String
-  programId     String
-  programTitle  String
-  status        String   @default("IN_PROGRESS")
-  score         Int?
-  certificateCode String? @unique
-  enrolledAt    DateTime @default(now())
-  completedAt   DateTime?
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                      String   @id @default(uuid())
+  userId                  String
+  programId               String
+  programTitle            String
+  status                  String   @default("IN_PROGRESS")
+  score                   Int?
+  testMarks               Int?
+  assignmentMarks         Int?
+  projectMarks            Int?
+  projectTitle            String?
+  projectUrl              String?
+  assignmentSubmission    String?
+  customAssignmentTitle   String?
+  customAssignmentDetails String?
+  customAssignmentDeadline DateTime?
+  feedback                String?
+  certificateCode         String?  @unique
+  enrolledAt              DateTime @default(now())
+  completedAt             DateTime?
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, programId])
   @@index([userId, status])
 }
 
 model TrainingProgram {
-  id             String   @id @default(uuid())
-  title          String
-  domain         String
-  skillsCovered  String[]
-  mode           WorkMode @default(ONLINE)
-  format         String
-  durationWeeks  Int
-  provider       String
-  providerUserId String
-  assessmentType String
-  createdAt      DateTime @default(now())
-  providerUser   User     @relation("TrainingProgramProvider", fields: [providerUserId], references: [id], onDelete: Cascade)
+  id                  String   @id @default(uuid())
+  title               String
+  domain              String
+  skillsCovered       String[]
+  mode                WorkMode @default(ONLINE)
+  format              String
+  durationWeeks       Int
+  provider            String
+  providerUserId      String
+  assessmentType      String
+  assignmentDetails   String?
+  testInstructions    String?
+  quizQuestions       Json?    @default("[]")
+  createdAt           DateTime @default(now())
+  providerUser        User     @relation("TrainingProgramProvider", fields: [providerUserId], references: [id], onDelete: Cascade)
 
   @@index([providerUserId, createdAt])
 }

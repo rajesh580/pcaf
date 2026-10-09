@@ -297,6 +297,9 @@ const DEFAULT_QUESTIONS = [
 ];
 
 function getQuestionsForProgram(program) {
+  if (Array.isArray(program?.quizQuestions) && program.quizQuestions.length > 0) {
+    return program.quizQuestions;
+  }
   if (QUESTION_BANK[program.domain]) return QUESTION_BANK[program.domain];
   const matchedKey = Object.keys(QUESTION_BANK).find((key) =>
     program.domain.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(program.domain.toLowerCase())
@@ -549,7 +552,7 @@ export default function StudentTraining() {
                   </div>
 
                   <div className="mt-auto pt-6 border-t border-slate-100">
-                    {enrollment?.status === 'COMPLETED' ? (
+                    {enrollment?.status === 'COMPLETED' && enrollment?.certificateCode ? (
                       <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3.5 flex items-center justify-between">
                         <div>
                           <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-900">
@@ -649,17 +652,21 @@ export default function StudentTraining() {
                 <div className="flex items-center gap-3">
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      item.status === 'COMPLETED'
+                      item.status === 'COMPLETED' && item.certificateCode
                         ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                        : item.status === 'AWAITING_APPROVAL' || item.projectUrl
+                        ? 'bg-purple-100 text-purple-800 border border-purple-200'
                         : 'bg-amber-100 text-amber-800 border border-amber-200'
                     }`}
                   >
-                    {item.status === 'COMPLETED'
+                    {item.status === 'COMPLETED' && item.certificateCode
                       ? `Completed · ${item.score}%`
+                      : item.status === 'AWAITING_APPROVAL' || item.projectUrl
+                      ? 'Submitted · Awaiting Provider Evaluation'
                       : 'In Progress'}
                   </span>
 
-                  {item.status === 'COMPLETED' && (
+                  {item.status === 'COMPLETED' && item.certificateCode && (
                     <button
                       onClick={() => setSelectedCert(item)}
                       className="text-xs text-blue-600 font-semibold hover:underline flex items-center gap-1"

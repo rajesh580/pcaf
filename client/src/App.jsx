@@ -37,6 +37,7 @@ import CompanyDashboard from './pages/company/Dashboard';
 import CompanyRecruitment from './pages/company/Recruitment';
 import CompanyReports from './pages/company/Reports';
 import SkillProviderDashboard from './pages/company/SkillProviderDashboard';
+import QuizBuilder from './pages/company/QuizBuilder';
 
 // Admin Persona Pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -120,6 +121,7 @@ export default function App() {
 
           {/* Skill Provider Persona */}
           <Route path="dashboard/skill-provider" element={<SkillProviderDashboard />} />
+          <Route path="skill-provider/quiz-builder/:programId" element={<QuizBuilder />} />
 
           {/* Admin Persona Routes */}
           <Route path="dashboard/admin" element={<AdminDashboard />} />
