@@ -22,39 +22,32 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+const EMPTY_RESUME = {
+  name: '',
+  email: '',
+  phone: '',
+  location: '',
+  linkedin: '',
+  github: '',
+  portfolio: '',
+  summary: '',
+  college: '',
+  degree: '',
+  graduationYear: '',
+  cgpa: '',
+  skills: [],
+  projects: [],
+  certifications: [],
+  experiences: []
+};
+
 export default function StandardizedResume() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTemplate, setActiveTemplate] = useState('classic'); // 'classic' | 'modern' | 'technical'
 
   // Editable Form State
-  const [resumeData, setResumeData] = useState({
-    name: '',
-    email: '',
-    phone: '+91 98765 43210',
-    location: 'Bengaluru, India',
-    linkedin: '',
-    github: '',
-    portfolio: '',
-    summary: 'Motivated Software Engineering student with strong hands-on experience in full-stack development, database design, and cloud architecture. Passionate about solving complex technical challenges and building scalable web applications.',
-    college: '',
-    degree: 'B.E. / B.Tech in Computer Science & Engineering',
-    graduationYear: 2027,
-    cgpa: '8.5',
-    skills: [],
-    projects: [],
-    certifications: [],
-    experiences: [
-      {
-        id: 1,
-        role: 'Software Engineering Intern',
-        company: 'Tech Solutions Inc.',
-        duration: 'Jun 2025 - Aug 2025',
-        location: 'Remote',
-        description: 'Developed RESTful API endpoints using Node.js and PostgreSQL. Improved database query performance by 35% using indexing and optimized queries.'
-      }
-    ]
-  });
+  const [resumeData, setResumeData] = useState(EMPTY_RESUME);
 
   useEffect(() => {
     loadProfile();
@@ -66,60 +59,45 @@ export default function StandardizedResume() {
       const res = await studentService.getProfile();
       if (res.student) {
         const s = res.student;
-        setResumeData((prev) => ({
-          ...prev,
-          name: s.name || prev.name,
-          email: s.email || prev.email,
-          linkedin: s.linkedinUrl || prev.linkedin || 'https://linkedin.com/in/student',
-          github: s.githubUrl || prev.github || 'https://github.com/student',
-          college: s.college || 'University Institute of Technology',
-          degree: `${s.department || 'Computer Science & Engineering'} (${s.academicProfile?.degree || 'B.E.'})`,
-          graduationYear: s.graduationYear || 2027,
-          cgpa: s.cgpa ? `${s.cgpa} / 10.0` : '8.5 / 10.0',
-          skills: s.skills && s.skills.length > 0
-            ? s.skills.map((sk) => ({ name: sk.skill?.name || sk.name, level: sk.level || 'INTERMEDIATE' }))
-            : [
-                { name: 'JavaScript (ES6+)', level: 'ADVANCED' },
-                { name: 'React.js', level: 'ADVANCED' },
-                { name: 'Node.js / Express', level: 'INTERMEDIATE' },
-                { name: 'Python', level: 'INTERMEDIATE' },
-                { name: 'PostgreSQL / SQL', level: 'INTERMEDIATE' },
-                { name: 'Git & GitHub', level: 'ADVANCED' }
-              ],
-          certifications: s.certifications && s.certifications.length > 0
-            ? s.certifications.map((c) => ({ name: c.name, issuer: 'PFAC Verified' }))
-            : [
-                { name: 'Modern React & Front-End Architecture — PFAC Certified (90%)', issuer: 'Frontend Pro Labs' },
-                { name: 'Python Full Stack Mastery — Verified Credential', issuer: 'Global Tech Academy' }
-              ],
-          projects: s.projects && s.projects.length > 0
+        setResumeData({
+          name: s.name || '',
+          email: s.email || '',
+          phone: '',
+          location: '',
+          linkedin: s.linkedinUrl || '',
+          github: s.githubUrl || '',
+          portfolio: '',
+          summary: '',
+          college: s.college || '',
+          degree: s.department ? `${s.department} (${s.academicProfile?.degree || 'B.E. / B.Tech'})` : (s.academicProfile?.degree || ''),
+          graduationYear: s.graduationYear || '',
+          cgpa: s.cgpa ? `${s.cgpa} / 10.0` : '',
+          skills: Array.isArray(s.skills)
+            ? s.skills.map((sk) => ({ name: sk.skill?.name || sk.name || '', level: sk.level || 'INTERMEDIATE' }))
+            : [],
+          certifications: Array.isArray(s.certifications)
+            ? s.certifications.map((c) => ({ name: c.name || '', issuer: 'Verified Credential' }))
+            : [],
+          projects: Array.isArray(s.projects)
             ? s.projects.map((p, idx) => ({
                 id: idx + 1,
-                title: p.title || 'Academia-Industry Collaboration Portal',
-                techStack: 'React, Node.js, PostgreSQL, Tailwind CSS',
-                description: 'Built a full-stack portal supporting multi-role authentication, automated ATS resume generation, skill mapping, and internship application tracking.'
+                title: p.title || '',
+                techStack: '',
+                description: ''
               }))
-            : [
-                {
-                  id: 1,
-                  title: 'Academia-Industry Collaboration Portal',
-                  techStack: 'React, Node.js, Express, PostgreSQL, Tailwind CSS',
-                  description: 'Architected and deployed a multi-tenant portal for colleges, companies, and students. Integrated real-time skill gap analysis and automated ATS resume exporter.'
-                },
-                {
-                  id: 2,
-                  title: 'Distributed Cloud Microservices Pipeline',
-                  techStack: 'Docker, AWS S3, Node.js, Redis, CI/CD',
-                  description: 'Designed a microservices workflow for processing asynchronous file uploads with token authentication and rate limiting.'
-                }
-              ]
-        }));
+            : [],
+          experiences: []
+        });
       }
     } catch (err) {
       console.warn('Profile load notice:', err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleClearAll = () => {
+    setResumeData(EMPTY_RESUME);
   };
 
   // Form Handlers
@@ -229,6 +207,24 @@ export default function StandardizedResume() {
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            onClick={loadProfile}
+            title="Reload verified data from your profile"
+            className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold border border-slate-200 transition flex items-center gap-1.5"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Reload Profile</span>
+          </button>
+
+          <button
+            onClick={handleClearAll}
+            title="Clear all prefilled data"
+            className="bg-rose-50 hover:bg-rose-100 text-rose-700 px-3.5 py-2 rounded-xl text-xs font-semibold border border-rose-200 transition flex items-center gap-1.5"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>Clear All</span>
+          </button>
+
           <div className="bg-emerald-50 border border-emerald-200 px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
             <span className="font-bold text-emerald-900">ATS Readiness: {atsScore}%</span>

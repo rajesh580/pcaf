@@ -66,6 +66,11 @@ router.post('/register', async (req, res) => {
     }
 
     const generatedUsn = usn || `USN${Date.now().toString().slice(-6)}`;
+    const currentYear = new Date().getFullYear();
+    const reqSemester = req.body.semester !== undefined ? Number(req.body.semester) : 1;
+    const reqCgpa = req.body.cgpa !== undefined ? parseFloat(req.body.cgpa) : 0.0;
+    const reqAdmissionYear = req.body.admissionYear ? Number(req.body.admissionYear) : currentYear;
+    const reqGraduationYear = req.body.graduationYear ? Number(req.body.graduationYear) : (currentYear + 4);
 
     // Save student user and connected student profile in Neon PostgreSQL
     const newUser = await prisma.user.create({
@@ -80,10 +85,10 @@ router.post('/register', async (req, res) => {
           create: {
             name: name || 'Student Candidate',
             usn: generatedUsn,
-            admissionYear: 2023,
-            graduationYear: 2027,
-            semester: 6,
-            cgpa: 7.5,
+            admissionYear: reqAdmissionYear,
+            graduationYear: reqGraduationYear,
+            semester: reqSemester,
+            cgpa: reqCgpa,
             collegeId: college.id,
             departmentId: deptId
           }

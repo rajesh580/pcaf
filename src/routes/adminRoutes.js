@@ -224,6 +224,12 @@ router.post('/users', authenticate, checkPermission('USER_CREATE'), async (req, 
       return res.status(409).json({ error: 'A user with this email address is already registered.' });
     }
 
+    const currentYear = new Date().getFullYear();
+    const adminSemester = req.body.semester !== undefined ? Number(req.body.semester) : 1;
+    const adminCgpa = req.body.cgpa !== undefined ? parseFloat(req.body.cgpa) : 0.0;
+    const adminAdmissionYear = req.body.admissionYear ? Number(req.body.admissionYear) : currentYear;
+    const adminGraduationYear = req.body.graduationYear ? Number(req.body.graduationYear) : (currentYear + 4);
+
     const passwordHash = await bcrypt.hash(password, 10);
     const newUser = await prisma.user.create({
       data: {
@@ -240,11 +246,11 @@ router.post('/users', authenticate, checkPermission('USER_CREATE'), async (req, 
           studentProfile: {
             create: {
               name: name || email.split('@')[0],
-              usn: `USN${Date.now().toString().slice(-6)}`,
-              admissionYear: 2023,
-              graduationYear: 2027,
-              semester: 6,
-              cgpa: 7.5,
+              usn: req.body.usn || `USN${Date.now().toString().slice(-6)}`,
+              admissionYear: adminAdmissionYear,
+              graduationYear: adminGraduationYear,
+              semester: adminSemester,
+              cgpa: adminCgpa,
               collegeId: assignedCollegeId,
               departmentId: assignedDeptId
             }
