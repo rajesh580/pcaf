@@ -97,5 +97,3 @@ npm run prisma:db-push
 npm run build
 npm start
 ```
-
-For local development, run the database push once before `npm run dev`. The curated training catalog is bundled with the application; provider-published programs and student enrollments are stored in the database. Assessment scores are entered as results from the program's external assessment; this version does not host or proctor those assessments. Package statistics, SMS/WhatsApp, hosted assessments, and AI resume/JD parsing remain outside this release.
